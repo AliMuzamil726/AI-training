@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAWIE - Agricultural Management Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --green: #2e7d32;
+    --green-light: #43a047;
+    --green-dark: #1b5e20;
+    --green-bg: #e8f5e9;
+    --sidebar-bg: #fff;
+    --sidebar-width: 220px;
+    --header-h: 50px;
+    --gray-1: #f5f5f5;
+    --gray-2: #eeeeee;
+    --gray-3: #9e9e9e;
+    --gray-4: #616161;
+    --border: #e0e0e0;
+    --text: #333;
+    --white: #fff;
+    --teal: #00897b;
+    --orange: #f57c00;
+    --blue: #1976d2;
+    --purple: #7b1fa2;
+    --red: #c62828;
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    background: #f0f2f5;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* ── TOP HEADER ── */
+  .top-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--header-h);
+    background: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 1000;
+    box-shadow: 0 2px 6px rgba(0,0,0,.25);
+  }
+  .top-header .logo {
+    color: #fff;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+  .top-header .nav-icons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .top-header .nav-icons a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background .2s;
+  }
+  .top-header .nav-icons a:hover { background: rgba(255,255,255,.15); }
+  .top-header .nav-icons a i { font-size: 13px; }
+  .top-header .welcome {
+    color: #fff;
+    font-size: 11px;
+    margin-left: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .top-header .avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--green-dark);
+    border: 2px solid rgba(255,255,255,.5);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 600; font-size: 13px;
+  }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: flex;
+    margin-top: var(--header-h);
+    min-height: calc(100vh - var(--header-h));
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: var(--header-h);
+    bottom: 0;
+    left: 0;
+    overflow-y: auto;
+    z-index: 900;
+    padding-bottom: 20px;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+
+  .sidebar-user {
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+    background: var(--green-bg);
+  }
+  .sidebar-user .uavatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--green);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 14px; flex-shrink: 0;
+  }
+  .sidebar-user .uname {
+    font-size: 11px; font-weight: 600; color: var(--green-dark);
+    line-height: 1.3;
+  }
+  .sidebar-user .uname span { display: block; font-weight: 400; color: var(--gray-3); font-size: 10px; }
+  .sidebar-user .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #4caf50; margin-left: auto; flex-shrink: 0;
+  }
+
+  /* Action Buttons */
+  .sidebar-actions {
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .btn-action {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 10.5px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    color: #fff;
+    transition: opacity .2s, transform .15s;
+    text-align: left;
+  }
+  .btn-action:hover { opacity: .9; transform: translateX(2px); }
+  .btn-action i { font-size: 11px; flex-shrink: 0; }
+  .btn-add    { background: var(--green); }
+  .btn-sub    { background: var(--green-light); }
+  .btn-dist   { background: #388e3c; }
+  .btn-report { background: #558b2f; }
+  .btn-update { background: #00897b; }
+  .btn-filter { background: #0288d1; }
+  .btn-single { background: #7b1fa2; }
+  .btn-sales  { background: #e65100; }
+  .btn-ndvi   { background: #1565c0; }
+  .btn-missing{ background: #c62828; }
+  .btn-notif  { background: #6a1b9a; }
+  .btn-map    { background: #00695c; }
+  .btn-indices{ background: #37474f; }
+
+  /* Nav Menu */
+  .sidebar-nav { padding: 6px 0; }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    color: var(--gray-4);
+    font-size: 11px;
+    border-left: 3px solid transparent;
+  }
+  .nav-item:hover {
+    background: var(--green-bg);
+    color: var(--green);
+    border-left-color: var(--green);
+  }
+  .nav-item.active {
+    background: var(--green-bg);
+    color: var(--green);
+    border-left-color: var(--green);
+    font-weight: 600;
+  }
+  .nav-item .nav-left {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .nav-item i { font-size: 12px; width: 14px; text-align: center; }
+  .nav-item .badge {
+    background: var(--green);
+    color: #fff;
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 8px;
+    font-weight: 600;
+  }
+  .nav-arrow { font-size: 9px; color: var(--gray-3); }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .stat-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--white);
+    min-width: 120px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .stat-card.fields::before { background: var(--green); }
+  .stat-card.horti::before  { background: #8bc34a; }
+  .stat-card.crops::before  { background: var(--orange); }
+  .stat-card.profile::before{ background: var(--blue); }
+  .stat-card.dairy::before  { background: var(--teal); }
+  .stat-card.acres::before  { background: #fdd835; }
+
+  .stat-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .stat-card.fields .stat-icon  { background: #e8f5e9; color: var(--green); }
+  .stat-card.horti  .stat-icon  { background: #f1f8e9; color: #689f38; }
+  .stat-card.crops  .stat-icon  { background: #fff3e0; color: var(--orange); }
+  .stat-card.profile .stat-icon { background: #e3f2fd; color: var(--blue); }
+  .stat-card.dairy  .stat-icon  { background: #e0f2f1; color: var(--teal); }
+  .stat-card.acres  .stat-icon  { background: #fffde7; color: #f9a825; }
+
+  .stat-info .label { font-size: 10px; color: var(--gray-3); font-weight: 500; }
+  .stat-info .value { font-size: 16px; font-weight: 700; color: var(--text); line-height: 1.2; }
+
+  /* Special wide card for fields with image */
+  .stat-card.fields-wide {
+    min-width: 180px;
+    background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
+    border-color: transparent;
+  }
+  .stat-card.fields-wide::before { display: none; }
+  .stat-card.fields-wide .stat-info .label { color: rgba(255,255,255,.8); }
+  .stat-card.fields-wide .stat-info .value { color: #fff; font-size: 20px; }
+  .stat-card.fields-wide .stat-icon { background: rgba(255,255,255,.2); color: #fff; }
+  .field-img {
+    width: 60px; height: 50px;
+    border-radius: 6px;
+    object-fit: cover;
+    opacity: .85;
+  }
+  .field-img-placeholder {
+    width: 60px; height: 50px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #1b5e20, #388e3c);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+
+  /* ── CONTENT AREA ── */
+  .content {
+    padding: 20px;
+    flex: 1;
+  }
+
+  .page-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--green-dark);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .page-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
+  }
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .filter-label {
+    font-size: 11px;
+    color: var(--gray-3);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .filter-select, .filter-input {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-size: 11px;
+    font-family: 'Poppins', sans-serif;
+    color: var(--text);
+    background: var(--white);
+    outline: none;
+    transition: border-color .2s;
+  }
+  .filter-select:focus, .filter-input:focus { border-color: var(--green); }
+  .filter-select { min-width: 130px; }
+  .filter-input  { min-width: 120px; }
+
+  .filter-row2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .btn-submit {
+    padding: 5px 14px;
+    border: none;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity .2s;
+    color: #fff;
+  }
+  .btn-submit:hover { opacity: .85; }
+  .btn-go    { background: var(--green); }
+  .btn-reset { background: var(--red); }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .table-scroll { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+  thead tr {
+    background: var(--green);
+    color: #fff;
+  }
+  thead th {
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--gray-2);
+    transition: background .15s;
+  }
+  tbody tr:hover { background: var(--green-bg); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody td {
+    padding: 8px 12px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  tbody td.sawie-num {
+    font-weight: 600;
+    color: var(--green);
+  }
+  .select-mini {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 3px 6px;
+    font-size: 10px;
+    font-family: 'Poppins', sans-serif;
+    color: var(--text);
+    background: var(--white);
+    cursor: pointer;
+  }
+  .badge-class {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--green);
+    font-weight: 500;
+  }
+  .badge-class i { font-size: 9px; }
+
+  /* ── PAGINATION ── */
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 12px;
+    border-top: 1px solid var(--border);
+    background: var(--gray-1);
+  }
+  .pg-btn {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--white);
+    font-size: 11px;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    color: var(--text);
+    transition: all .15s;
+    min-width: 28px;
+    text-align: center;
+  }
+  .pg-btn:hover { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  .pg-btn.active { background: var(--green); border-color: var(--green); color: #fff; font-weight: 600; }
+  .pg-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 10px;
+    font-size: 10px;
+    color: var(--gray-3);
+    border-top: 1px solid var(--border);
+    background: var(--white);
+    margin-left: var(--sidebar-width);
+  }
+
+  /* Horizontal scrollbar for table footer */
+  .table-hscroll {
+    overflow-x: auto;
+    padding: 4px 12px;
+    border-top: 1px solid var(--border);
+  }
+  .table-hscroll-inner { width: 800px; height: 1px; }
+</style>
+</head>
+<body>
+
+<!-- TOP HEADER -->
+<header class="top-header">
+  <div class="logo">SAWIE</div>
+  <div class="nav-icons">
+    <a href="#"><i class="fas fa-search"></i> Search Farmer</a>
+    <a href="#"><i class="fas fa-map-marker-alt"></i> Search Field</a>
+    <a href="#"><i class="fas fa-download"></i> Download Reports</a>
+    <span class="welcome">
+      Welcome! &nbsp;
+      <div class="avatar">S</div>
+    </span>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <!-- User Info -->
+    <div class="sidebar-user">
+      <div class="uavatar">M</div>
+      <div class="uname">
+        Mubashar
+        <span>System Administrator</span>
+      </div>
+      <div class="dot"></div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="sidebar-actions">
+      <button class="btn-action btn-add">    <i class="fas fa-plus-circle"></i> Add New Farmer +</button>
+      <button class="btn-action btn-sub">    <i class="fas fa-seedling"></i>    New Sub Field +</button>
+      <button class="btn-action btn-dist">   <i class="fas fa-map"></i>         District Fields</button>
+      <button class="btn-action btn-report"> <i class="fas fa-file-alt"></i>    Generate Report</button>
+      <button class="btn-action btn-update"> <i class="fas fa-sync-alt"></i>    Data Update</button>
+      <button class="btn-action btn-filter"> <i class="fas fa-filter"></i>      Filter Farmers/ Fields</button>
+      <button class="btn-action btn-single"> <i class="fas fa-user"></i>        Single Farmer View</button>
+      <button class="btn-action btn-sales">  <i class="fas fa-chart-bar"></i>   Sales Filter</button>
+      <button class="btn-action btn-ndvi">   <i class="fas fa-satellite"></i>   NDVI View</button>
+      <button class="btn-action btn-missing"><i class="fas fa-exclamation-triangle"></i> Missing NDVI</button>
+      <button class="btn-action btn-notif">  <i class="fas fa-bell"></i>        Get Notif Nalmi Nahra</button>
+      <button class="btn-action btn-map">    <i class="fas fa-globe"></i>       Fields Map</button>
+      <button class="btn-action btn-indices"><i class="fas fa-chart-line"></i>  Indices Status</button>
+    </div>
+
+    <!-- Nav Menu -->
+    <nav class="sidebar-nav">
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-book"></i> Sawie Passbook</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-tractor"></i> Landmass Management</div><i class="fas fa-chevron-right nav-arrow"></i></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-th-large"></i> Sub Field Management</div><i class="fas fa-chevron-right nav-arrow"></i></div>
+      <div class="nav-item active"><div class="nav-left"><i class="fas fa-list"></i> Farmer Listing</div><i class="fas fa-chevron-right nav-arrow"></i></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-map-marked-alt"></i> Offline Mapping</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-archive"></i> Offline Archive</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-user-slash"></i> Inactive Farmer List</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-images"></i> Info Gallery</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-microchip"></i> Manage Sensors</div><i class="fas fa-chevron-right nav-arrow"></i></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-file-import"></i> Import Farmer</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-bell"></i> Push Notifications</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-bullhorn"></i> Campaign Mgmt.</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-seedling"></i> Field Crop</div><i class="fas fa-chevron-right nav-arrow"></i></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-apple-alt"></i> Field Horticulture</div><i class="fas fa-chevron-right nav-arrow"></i></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-tree"></i> Field Forestry</div><i class="fas fa-chevron-right nav-arrow"></i></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-leaf"></i> Sawie CropScan</div><i class="fas fa-chevron-right nav-arrow"></i></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-users"></i> Farmer Management</div><i class="fas fa-chevron-right nav-arrow"></i></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-store"></i> SAWIE Market Place</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-spa"></i> Crops &amp; Horticulture</div><i class="fas fa-chevron-right nav-arrow"></i></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-book-open"></i> Knowledge Centre</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="far fa-calendar-alt"></i> Crop Calendar</div><i class="fas fa-chevron-right nav-arrow"></i></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-bell"></i> Manage Notifications</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-wallet"></i> Sawie Bathuk</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-coins"></i> Sawie Sazers</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-store-alt"></i> Sawie Gup Shup</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-newspaper"></i> Sawie Farmer Stories</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-calendar-check"></i> Manage Years</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-flask"></i> Manage Fertilizer</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-prescription-bottle"></i> Manage Pesticide</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-horse"></i> Manage Livestock</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-user-tie"></i> Manage Reps</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-gem"></i> Manage Sapphire Reps</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-question-circle"></i> Manage FAQs</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-tasks"></i> Manage Daily Alerts</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-headset"></i> Call Center Mgmt.</div><i class="fas fa-chevron-right nav-arrow"></i></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-user-circle"></i> My Account</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-cog"></i> Manage Setting</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-clipboard-list"></i> Activity Standards</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-tint"></i> Manage Water Parameter</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-comments"></i> Manage FCRW Advisory</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-object-group"></i> Manage Cluster</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-project-diagram"></i> Manage Projects</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-chalkboard-teacher"></i> Manage Trainings</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-running"></i> Manage Activities</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-walking"></i> Purpose of Visit</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-money-check-alt"></i> Manage Payment Methods</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-check-square"></i> Member Tasks</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-bolt"></i> Assign Activity</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-tags"></i> Sawie Classification</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-flag"></i> Sawie Regen Options</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-user-shield"></i> Manage User Role</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-map-pin"></i> City &amp; Locations</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-chart-pie"></i> Report Options</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-tractor"></i> Farming Activities</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-sitemap"></i> Org. &amp; Branches</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-address-card"></i> Manage Address</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-receipt"></i> Manage Expenses</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-smog"></i> Carbon Standards</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-certificate"></i> Certification Standard</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-user-cog"></i> Manage Ginner</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-tools"></i> Manage Hecop</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-layer-group"></i> Manage Crop Stages</div></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-truck"></i> Track Management</div><i class="fas fa-chevron-right nav-arrow"></i></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-people-arrows"></i> Manage Cluster-Designa.</div><i class="fas fa-chevron-right nav-arrow"></i></div>
+      <div class="nav-item"><div class="nav-left"><i class="fas fa-hiking"></i> Field Visit Type</div></div>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <!-- Fields Wide Card -->
+      <div class="stat-card fields-wide">
+        <div class="field-img-placeholder">🌾</div>
+        <div class="stat-info">
+          <div class="label">Total Fields</div>
+          <div class="value">10768</div>
+        </div>
+      </div>
+
+      <div class="stat-card horti">
+        <div class="stat-icon"><i class="fas fa-apple-alt"></i></div>
+        <div class="stat-info">
+          <div class="label">Horticulture</div>
+          <div class="value">16</div>
+        </div>
+      </div>
+
+      <div class="stat-card crops">
+        <div class="stat-icon"><i class="fas fa-seedling"></i></div>
+        <div class="stat-info">
+          <div class="label">Crops</div>
+          <div class="value">7029</div>
+        </div>
+      </div>
+
+      <div class="stat-card profile">
+        <div class="stat-icon"><i class="fas fa-id-card"></i></div>
+        <div class="stat-info">
+          <div class="label">Farm Profile</div>
+          <div class="value">—</div>
+        </div>
+      </div>
+
+      <div class="stat-card dairy">
+        <div class="stat-icon"><i class="fas fa-cow"></i></div>
+        <div class="stat-info">
+          <div class="label">Dairy &amp; Livestock</div>
+          <div class="value">—</div>
+        </div>
+      </div>
+
+      <div class="stat-card acres">
+        <div class="stat-icon"><i class="fas fa-ruler-combined"></i></div>
+        <div class="stat-info">
+          <div class="label">Total Acres</div>
+          <div class="value">104553</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <div class="page-title"><i class="fas fa-table" style="color:var(--green)"></i> Manage Sub Fields</div>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <div class="filter-row">
+          <span class="filter-label">Filter:</span>
+          <select class="filter-select"><option>Select Farmer</option></select>
+          <select class="filter-select"><option>Select Category</option><option>Rice</option><option>Cotton</option><option>Wheat</option></select>
+          <input type="date" class="filter-input" placeholder="yyyy-mm-dd">
+          <input type="date" class="filter-input" placeholder="yyyy-mm-dd">
+        </div>
+        <div class="filter-row2">
+          <select class="filter-select"><option>Select Representative</option></select>
+          <select class="filter-select"><option>Select Area</option></select>
+          <button class="btn-submit btn-go">Submit</button>
+          <button class="btn-submit btn-reset">Reset</button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Sawie #</th>
+                <th>Farmer Name</th>
+                <th>Field Name</th>
+                <th>Field Area</th>
+                <th>Sawie Reps.</th>
+                <th>Customer Class</th>
+                <th>City</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- Rows injected by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Horizontal scroll indicator -->
+        <div class="table-hscroll"><div class="table-hscroll-inner"></div></div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+    </div><!-- /content -->
+
+    <footer class="footer">
+      &copy; 2024 SAWIE. All Rights Reserved.
+    </footer>
+  </main>
+
+</div><!-- /layout -->
+
+<script>
+  // ── SAMPLE DATA (no real data — structure only) ──
+  const rows = [
+    { id: 2793, farmer: 'Irfan Bashir',        field: 'Amir Farm F2',      area: '21 ac',   rep: 'waleed',   cls: 'Self Register', city: 'Okara' },
+    { id: 9785, farmer: 'Wajid Ali',            field: 'Rice3',             area: '0.31 ac', rep: '',         cls: 'Self Register', city: 'Depalpur' },
+    { id: 9784, farmer: 'Liaqat Ali',           field: 'Rice 5',            area: '0.21 ac', rep: '',         cls: 'Self Register', city: 'Depalpur' },
+    { id: 9783, farmer: 'Muhammad Sabir',       field: 'Rice 2',            area: '1.47 ac', rep: '',         cls: 'Self Register', city: 'Depalpur' },
+    { id: 9782, farmer: 'Munir Ahmad',          field: 'Rice 1',            area: '0.45 ac', rep: '',         cls: 'Self Register', city: 'Depalpur' },
+    { id: 9681, farmer: 'Muneer Hussain',       field: 'Rice 518',          area: '9.58 ac', rep: 'Umair',   cls: 'Self Register', city: 'Karor Lal Es' },
+    { id: 9781, farmer: 'M Shahzad',            field: 'Cotton 632',        area: '3.41 ac', rep: '',         cls: 'Self Register', city: 'Karor Lal Es' },
+    { id: 9780, farmer: 'M Farooq',             field: 'Cotton 633',        area: '8.78 ac', rep: '',         cls: 'Self Register', city: 'Karor Lal Es' },
+    { id: 9779, farmer: 'Rana Waqas',           field: 'Cotton 634',        area: '7.95 ac', rep: '',         cls: 'Self Register', city: 'Karor Lal Es' },
+    { id: 9778, farmer: 'M Asad',               field: 'Cotton 631',        area: '5.34 ac', rep: '',         cls: 'Self Register', city: 'Karor Lal Es' },
+    { id: 9777, farmer: 'M Hafeez',             field: 'Cotton 630',        area: '5.04 ac', rep: '',         cls: 'Self Register', city: 'Karor Lal Es' },
+    { id: 9763, farmer: 'Riaz Hussain',         field: 'Rice 734',          area: '4.02 ac', rep: 'Muham.',  cls: 'Self Register', city: 'Karor Lal Es' },
+    { id: 9776, farmer: 'Haider ghaffar',       field: 'Haider f2',         area: '0.06 ac', rep: 'Ehsan',   cls: 'Self Register', city: 'Sheikhupura' },
+    { id: 9775, farmer: 'Ghulam shabeer',       field: 'Rice 140',          area: '1.78 ac', rep: 'Muham.',  cls: 'Self Register', city: 'Karor Lal Es' },
+    { id: 9774, farmer: 'Abdul Aziz',           field: 'Rice 739',          area: '4.37 ac', rep: '',         cls: 'Self Register', city: 'Karor Lal Es' },
+    { id: 9773, farmer: 'Abdul Ghafoor',        field: 'Rice 738',          area: '4.21 ac', rep: '',         cls: 'Self Register', city: 'Karor Lal Es' },
+    { id: 9772, farmer: 'Muhammad Ashraf',      field: 'Rice 727',          area: '7.82 ac', rep: '',         cls: 'Self Register', city: 'Karor Lal Es' },
+    { id: 9771, farmer: 'Muhammad Nawaz',       field: 'Nawaz Farm Kahla',  area: '7.08 ac', rep: '',         cls: 'Self Register', city: 'Okara' },
+    { id: 9675, farmer: 'Muhammad Qalab jut',   field: 'Cotton 540',        area: '3.57 ac', rep: 'Umair',   cls: 'Self Register', city: 'Karor Lal Es' },
+    { id: 9249, farmer: 'M. Rasheed Ahmad',     field: 'Cotton 539',        area: '4.65 ac', rep: '',         cls: 'Self Register', city: 'Karor Lal Es' },
+    { id: 7108, farmer: 'Umair Ashraf',         field: 'Cotton 538',        area: '5.57 ac', rep: '',         cls: 'Select Class',  city: 'Karor Lal Es' },
+    { id: 9770, farmer: 'M. Nimali Ali',        field: 'Cotton 537',        area: '8.36 ac', rep: '',         cls: 'Self Register', city: 'Karor Lal Es' },
+    { id: 9769, farmer: 'M. Atif',              field: 'Cotton 535',        area: '8.44 ac', rep: '',         cls: 'Self Register', city: 'Karor Lal Es' },
+    { id: 9768, farmer: 'M. Taiyab',            field: 'Cotton 535',        area: '7.25 ac', rep: '',         cls: 'Self Register', city: 'Karor Lal Es' },
+    { id: 9767, farmer: 'M. Waqas',             field: 'Cotton 533',        area: '3.34 ac', rep: '',         cls: 'Self Register', city: 'Karor Lal Es' },
+  ];
+
+  const ROWS_PER_PAGE = 25;
+  let currentPage = 1;
+  const totalPages = Math.ceil(rows.length / ROWS_PER_PAGE);
+
+  function renderTable(page) {
+    const start = (page - 1) * ROWS_PER_PAGE;
+    const slice = rows.slice(start, start + ROWS_PER_PAGE);
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = slice.map(r => `
+      <tr>
+        <td class="sawie-num">${r.id}</td>
+        <td>${r.farmer}</td>
+        <td>${r.field}</td>
+        <td>${r.area}</td>
+        <td>
+          <select class="select-mini">
+            <option value="">${r.rep ? r.rep : 'Select R+'}</option>
+            <option>Waleed</option><option>Umair</option><option>Muham.</option><option>Ehsan</option>
+          </select>
+        </td>
+        <td><span class="badge-class"><i class="fas fa-circle" style="color:#4caf50"></i>${r.cls}</span></td>
+        <td>${r.city}</td>
+      </tr>
+    `).join('');
+  }
+
+  function renderPagination(page) {
+    const pg = document.getElementById('pagination');
+    let html = `<button class="pg-btn" onclick="goPage(${page-1})" ${page===1?'disabled':''}>« Previous</button>`;
+    for (let i = 1; i <= totalPages; i++) {
+      html += `<button class="pg-btn${i===page?' active':''}" onclick="goPage(${i})">${i}</button>`;
+    }
+    // extra page buttons (static, to match screenshot)
+    for (let i = totalPages+1; i <= 9; i++) {
+      html += `<button class="pg-btn" onclick="goPage(${i})">${i}</button>`;
+    }
+    html += `<button class="pg-btn" onclick="goPage(${page+1})">Next »</button>`;
+    pg.innerHTML = html;
+  }
+
+  function goPage(p) {
+    if (p < 1) return;
+    currentPage = p;
+    renderTable(currentPage);
+    renderPagination(currentPage);
+    window.scrollTo({ top: 200, behavior: 'smooth' });
+  }
+
+  // Nav active toggle
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+
+  // Init
+  renderTable(1);
+  renderPagination(1);
+</script>
+</body>
+</html>
