@@ -1,9 +1,14 @@
+import warnings
+warnings.filterwarnings("ignore", message=".*bytes wanted but.*bytes read.*")
+
 import os
 import random
 import sys
 import gc
 import tempfile
 import shutil
+import subprocess
+import json
 from moviepy import (
     VideoFileClip,
     concatenate_videoclips,
@@ -133,6 +138,79 @@ def close_all_cached_clips():
 # ----------------------------------------------------------------------------
 # RANDOM SCENE PLAN (no script/table - built purely from clip pool + audio length)
 # ----------------------------------------------------------------------------
+def get_clip_duration_ffprobe(clip_path):
+    """
+    Reads a video's duration using ffprobe directly (no moviepy object is
+    ever created here). This is the RAM fix: the old approach opened a real
+    VideoFileClip for every single clip just to read .duration, and even
+    with immediate .close() calls, doing this 100-200+ times in a row before
+    any chunking even began was still enough to spike memory on an 8GB
+    machine. ffprobe is a tiny separate process that reads file metadata and
+    exits - it holds no Python-side video buffers at all.
+
+    Also raises if the file looks corrupt/truncated (no video stream, zero
+    duration, or ffprobe itself errors out) so build_random_scene_plan can
+    skip it BEFORE it reaches chunk rendering - a damaged file there causes
+    moviepy to spam "0 bytes read" warnings per frame and encode at a
+    fraction of normal speed, which is what was happening with Birds/002.mp4.
+    """
+    cmd = [
+        "ffprobe", "-v", "error",
+        "-select_streams", "v:0",
+        "-show_entries", "stream=codec_type,width,height",
+        "-show_entries", "format=duration",
+        "-of", "json",
+        clip_path,
+    ]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+    except subprocess.TimeoutExpired:
+        raise RuntimeError("ffprobe timed out (file may be corrupt/hanging).")
+
+    if result.returncode != 0 or result.stderr.strip():
+        raise RuntimeError(f"ffprobe reported an error (file may be corrupt): {result.stderr.strip()[:200]}")
+
+    data = json.loads(result.stdout)
+    streams = data.get("streams", [])
+    if not streams or streams[0].get("codec_type") != "video":
+        raise RuntimeError("No readable video stream found (file may be corrupt).")
+
+    duration = float(data["format"]["duration"])
+    if duration <= 0:
+        raise RuntimeError("Reported duration is zero (file may be corrupt/truncated).")
+
+    return duration
+
+
+def verify_clip_readable(clip_path, start_time, take_duration):
+    """
+    ffprobe's metadata read (used in get_clip_duration_ffprobe) can report a
+    perfectly normal duration even when the file's actual video data is
+    truncated/corrupt partway through - this is exactly what happened with
+    Birds/002.mp4 (valid metadata, but decoding failed around frame 153/250).
+    This does a real but CHEAP decode check: it asks ffmpeg to decode just
+    the exact segment that will be used (not the whole file - much faster
+    for long source clips) to null output, and checks for decode errors.
+    It creates no Python-side video object, so it carries none of the RAM
+    risk that VideoFileClip probing had.
+    """
+    cmd = [
+        "ffmpeg", "-v", "error",
+        "-ss", str(start_time),
+        "-i", clip_path,
+        "-t", str(take_duration),
+        "-map", "0:v:0",
+        "-f", "null", "-",
+    ]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+    except subprocess.TimeoutExpired:
+        raise RuntimeError("Decode check timed out (file may be corrupt/hanging).")
+
+    if result.stderr.strip():
+        raise RuntimeError(f"Decode check found errors: {result.stderr.strip()[:200]}")
+
+
 def build_random_scene_plan(all_clip_paths, target_total_duration):
     """
     Builds a list of (clip_path, start_time, take_duration) tuples that:
@@ -144,14 +222,20 @@ def build_random_scene_plan(all_clip_paths, target_total_duration):
     a clear error instead of silently repeating clips (per your "no repeat"
     requirement) - add more clips to the folder if this happens.
 
-    IMPORTANT (RAM fix): this only needs each clip's DURATION to build the
-    plan - it must NOT keep the clip open or cached. Opening every clip via
-    the shared cache here (the old bug) meant that by the time chunked
-    rendering even started, every single clip needed to cover the whole
-    voiceover was already open in memory at once - defeating the entire
-    point of chunking. Each clip is now opened briefly just to read its
-    duration, then closed immediately before moving to the next one.
+    RAM FIX: durations are read via ffprobe (a separate lightweight process),
+    never by opening a moviepy VideoFileClip. No video object of any kind
+    exists during plan-building - only plain numbers (paths + durations).
     """
+    # Safety margin subtracted from every clip's usable duration. ffprobe's
+    # container-level duration can be very slightly longer than the actual
+    # last decodable frame (common with variable framerate or loosely muxed
+    # files). Without this margin, a trim window ending right at the reported
+    # duration can ask moviepy for a frame that doesn't quite exist, causing
+    # "0 bytes read" warnings and slow/glitchy encoding on files that are
+    # otherwise perfectly fine (this is what happened with a healthy 4.17s
+    # clip, not an actually corrupt file).
+    SAFETY_MARGIN = 0.15
+
     available = all_clip_paths.copy()
     random.shuffle(available)
 
@@ -169,29 +253,34 @@ def build_random_scene_plan(all_clip_paths, target_total_duration):
         clip_path = available[idx]
         idx += 1
 
-        try:
-            probe = VideoFileClip(clip_path, audio=False)
-        except Exception as e:
-            print(f"  ⚠ Could not open clip '{clip_path}': {e}")
-            continue
+        print(f"  [{idx}/{len(available)}] Checking '{os.path.basename(clip_path)}'... ({total_time:.0f}s / {target_total_duration:.0f}s built so far)")
 
         try:
-            probe_duration = probe.duration
-        finally:
-            try:
-                probe.close()
-            except Exception:
-                pass
+            probe_duration = get_clip_duration_ffprobe(clip_path)
+        except Exception as e:
+            print(f"  ⚠ Skipping '{os.path.basename(clip_path)}' - could not read duration: {e}")
+            continue
+
+        usable_duration = probe_duration - SAFETY_MARGIN
+        if usable_duration <= 0.3:
+            print(f"  ⚠ Skipping '{os.path.basename(clip_path)}' - too short after safety margin ({probe_duration:.2f}s).")
+            continue
 
         remaining_needed = target_total_duration - total_time
         wanted = random.uniform(MIN_CLIP_DURATION, MAX_CLIP_DURATION)
-        take = min(wanted, remaining_needed, probe_duration)
+        take = min(wanted, remaining_needed, usable_duration)
 
         if take <= 0.3:
             continue  # clip too short / negligible remainder, skip it
 
-        max_start = max(0.0, probe_duration - take)
+        max_start = max(0.0, usable_duration - take)
         start_time = random.uniform(0, max_start) if max_start > 0 else 0.0
+
+        try:
+            verify_clip_readable(clip_path, start_time, take)
+        except Exception as e:
+            print(f"  ⚠ Skipping '{os.path.basename(clip_path)}' - corrupt/unreadable video data: {e}")
+            continue
 
         plan.append((clip_path, start_time, take))
         total_time += take
