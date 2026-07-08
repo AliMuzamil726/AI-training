@@ -22,11 +22,12 @@ from moviepy import (
 CLIPS_ROOT = r"C:\Users\User\Desktop\data for YTA\story clips"
 OUTPUT_PATH = r"C:\Users\User\Desktop\Youtube video data\Secret chapter\final_video.mp4"
 
-CHUNK_SIZE = 20                 # scenes rendered per chunk, then RAM is freed before the next chunk
+CHUNK_SIZE = 25                # scenes rendered per chunk, then RAM is freed before the next chunk
 MIN_CLIP_DURATION = 3.0         # sec
 MAX_CLIP_DURATION = 6.0         # sec
 CROSSFADE_DURATION = 0.7        # sec - fixed transition length
-ENCODE_THREADS = 2               # ffmpeg threads (lowered for 8GB RAM safety)
+ENCODE_THREADS = 8             # ffmpeg threads - RAM safety now comes from chunking + leak fixes,
+                                  # not from starving the CPU, so this can use most of an i7's cores
 
 VIDEO_EXTENSIONS = (".mp4", ".mov", ".mkv", ".avi", ".webm")
 
@@ -243,7 +244,18 @@ def build_random_scene_plan(all_clip_paths, target_total_duration):
     total_time = 0.0
     idx = 0
 
-    while total_time < target_total_duration:
+    # Tolerance: once we're within this many seconds of the target, stop.
+    # Without this, a last sliver like "0.3s still needed" can force the
+    # loop to keep consuming clips (each contributing at least MIN_CLIP_
+    # DURATION) past the point where it's already close enough - and if the
+    # clip pool runs out right at that point (as happened at 970.5s/970.5s
+    # here), it raises "ran out of clips" even though the video is for all
+    # practical purposes already complete. The final video is trimmed exactly
+    # to the voiceover length later anyway, so slightly overshooting or
+    # landing a fraction of a second short here is harmless.
+    DURATION_TOLERANCE = 1.0
+
+    while total_time < target_total_duration - DURATION_TOLERANCE:
         if idx >= len(available):
             raise RuntimeError(
                 f"Ran out of unique clips before reaching the audio length "
@@ -266,9 +278,13 @@ def build_random_scene_plan(all_clip_paths, target_total_duration):
             print(f"  ⚠ Skipping '{os.path.basename(clip_path)}' - too short after safety margin ({probe_duration:.2f}s).")
             continue
 
-        remaining_needed = target_total_duration - total_time
         wanted = random.uniform(MIN_CLIP_DURATION, MAX_CLIP_DURATION)
-        take = min(wanted, remaining_needed, usable_duration)
+        # No cap against remaining_needed here: we WANT the last clip to be
+        # free to slightly overshoot the target rather than undershoot it -
+        # final export always trims the finished video down to the exact
+        # voiceover length anyway, so overshooting a couple seconds is
+        # harmless, while undershooting would clip off the tail of the audio.
+        take = min(wanted, usable_duration)
 
         if take <= 0.3:
             continue  # clip too short / negligible remainder, skip it
@@ -291,6 +307,22 @@ def build_random_scene_plan(all_clip_paths, target_total_duration):
 # BUILD CHUNK VIDEO FROM PLAN SLICE
 # ----------------------------------------------------------------------------
 def build_chunk_video(plan_slice, apply_transitions):
+    """
+    RAM FIX: any use of method="compose" for crossfades - whether all clips
+    composited at once, or even folded pair-by-pair - builds up a chain of
+    composite/mask objects that moviepy has to keep resolving lazily, and at
+    1080p with 20 scenes per chunk this was enough to exhaust RAM and get
+    OOM-killed by the OS, even with the pair-by-pair fix.
+
+    The fix: don't use compose/mask-based crossfading at all. Each clip
+    independently gets a short FadeOut at its own tail and a short FadeIn at
+    its own head, then all clips are joined with method="chain" (the same
+    lightweight, non-compositing join used for straight cuts). Two adjacent
+    fades meeting at a cut point looks visually almost identical to a true
+    crossfade, but costs zero extra memory - chain never builds a composite
+    frame, it just switches from one clip's frames to the next at the
+    boundary.
+    """
     segments = []
     for clip_path, start_time, take in plan_slice:
         clip = get_cached_clip(clip_path)
@@ -302,11 +334,17 @@ def build_chunk_video(plan_slice, apply_transitions):
     if not apply_transitions or TRANSITION_STYLE == "cut" or len(segments) < 2:
         return concatenate_videoclips(segments, method="chain")
 
-    processed: list = [segments[0]]
-    for clip in segments[1:]:
-        c = clip.with_effects([vfx.CrossFadeIn(CROSSFADE_DURATION)])
-        processed.append(c)
-    return concatenate_videoclips(processed, method="compose")
+    d = CROSSFADE_DURATION
+    faded_segments = []
+    for i, clip in enumerate(segments):
+        effects = []
+        if i > 0:
+            effects.append(vfx.FadeIn(d))
+        if i < len(segments) - 1:
+            effects.append(vfx.FadeOut(d))
+        faded_segments.append(clip.with_effects(effects) if effects else clip)
+
+    return concatenate_videoclips(faded_segments, method="chain")
 
 # ----------------------------------------------------------------------------
 # MAIN PIPELINE
@@ -395,15 +433,27 @@ def main():
         print(f"\n🔗 Concatenating {len(chunk_file_paths)} chunk file(s) into the final video...")
         chunk_video_clips = [VideoFileClip(p) for p in chunk_file_paths]
 
-        # Apply the same single transition style across chunk boundaries too,
-        # so the whole video (not just within a chunk) has consistent transitions.
+        # Same lightweight fade approach as build_chunk_video: independent
+        # FadeOut/FadeIn per chunk boundary joined with method="chain".
+        # The old approach used method="compose" here, which forces moviepy
+        # to re-composite every single frame of the ALREADY-ENCODED chunks
+        # again just to join them - on a ~1000s video that is effectively a
+        # second full-length encode pass, which is what was turning a
+        # ~30-60 minute job into 5 hours. "chain" just switches from one
+        # chunk's frames to the next at the boundary with no recompositing.
         if TRANSITION_STYLE == "cut" or len(chunk_video_clips) < 2:
             final_video = concatenate_videoclips(chunk_video_clips, method="chain")
         else:
-            processed_chunks: list = [chunk_video_clips[0]]
-            for c in chunk_video_clips[1:]:
-                processed_chunks.append(c.with_effects([vfx.CrossFadeIn(CROSSFADE_DURATION)]))
-            final_video = concatenate_videoclips(processed_chunks, method="compose")
+            d = CROSSFADE_DURATION
+            faded_chunks = []
+            for i, c in enumerate(chunk_video_clips):
+                effects = []
+                if i > 0:
+                    effects.append(vfx.FadeIn(d))
+                if i < len(chunk_video_clips) - 1:
+                    effects.append(vfx.FadeOut(d))
+                faded_chunks.append(c.with_effects(effects) if effects else c)
+            final_video = concatenate_videoclips(faded_chunks, method="chain")
 
         print("\n🎙️ Attaching voiceover audio...")
         if final_video.duration > voiceover_audio.duration:
