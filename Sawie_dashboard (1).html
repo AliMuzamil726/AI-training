@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAWIE — Agricultural Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1a6b2e;--green2:#22863a;--green3:#2da44e;--green-glow:rgba(45,164,78,.18);
+  --bg:#f0f4f1;--bg2:#e8efe9;--surface:#ffffff;--surface2:#f7faf7;
+  --border:rgba(0,0,0,.07);--border2:rgba(0,0,0,.12);
+  --text:#0d1b0f;--text2:#3d5140;--text3:#6b8870;
+  --amber:#d97706;--red:#dc2626;--blue:#2563eb;
+  --sidebar-w:260px;--header-h:56px;
+  --radius:12px;--radius-sm:8px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.08);
+  --trans:.18s cubic-bezier(.4,0,.2,1);
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;overflow-x:hidden;min-height:100vh}
+svg.icon{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
+
+/* ═══ LOGIN PAGE ═══ */
+#loginPage{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#062010 0%,#0d3318 30%,#1a6b2e 65%,#22863a 100%);
+  overflow:hidden;
+}
+.lp-orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.25;pointer-events:none}
+.lp-orb1{width:500px;height:500px;background:radial-gradient(circle,#2da44e,transparent);top:-100px;right:-100px}
+.lp-orb2{width:400px;height:400px;background:radial-gradient(circle,#1a6b2e,transparent);bottom:-80px;left:-80px}
+.lp-orb3{width:250px;height:250px;background:radial-gradient(circle,#22863a,transparent);top:40%;left:5%}
+.lp-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+  background-size:44px 44px;
+}
+.lp-card{
+  position:relative;z-index:2;
+  background:rgba(255,255,255,.97);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.3);
+  border-radius:20px;padding:44px 44px 38px;width:400px;
+  box-shadow:0 32px 80px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.15);
+  animation:lpSlide .55s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes lpSlide{from{opacity:0;transform:translateY(36px) scale(.97)}to{opacity:1;transform:none}}
+.lp-logo{text-align:center;margin-bottom:28px}
+.lp-mark{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:68px;height:68px;border-radius:18px;margin-bottom:14px;
+  background:linear-gradient(135deg,var(--green),var(--green3));
+  box-shadow:0 10px 30px var(--green-glow);
+}
+.lp-mark svg{width:30px;height:30px;stroke:#fff;stroke-width:2.2;fill:none}
+.lp-logo h1{font-size:30px;font-weight:800;color:var(--green);letter-spacing:2px}
+.lp-logo p{font-size:11px;color:var(--text3);margin-top:3px;letter-spacing:.5px;font-weight:500}
+.lp-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(45,164,78,.1);color:var(--green2);
+  font-size:10.5px;font-weight:700;padding:4px 12px;border-radius:20px;
+  margin-bottom:22px;border:1px solid rgba(45,164,78,.2);
+}
+.lp-pill svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2}
+.lp-err{
+  display:none;align-items:center;gap:8px;
+  background:#fef2f2;border:1px solid #fecaca;border-radius:8px;
+  padding:9px 12px;font-size:11.5px;color:#b91c1c;margin-bottom:14px;
+}
+.lp-err.show{display:flex;animation:shake .35s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}30%{transform:translateX(-6px)}70%{transform:translateX(6px)}}
+.lp-field{margin-bottom:15px}
+.lp-field label{display:block;font-size:10.5px;font-weight:700;color:var(--text2);margin-bottom:6px;letter-spacing:.4px;text-transform:uppercase}
+.lp-wrap{position:relative}
+.lp-wrap svg.fi{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text3);pointer-events:none;fill:none;stroke:currentColor;stroke-width:2}
+.lp-wrap input{
+  width:100%;padding:11px 12px 11px 38px;
+  border:1.5px solid var(--border2);border-radius:10px;
+  font-family:inherit;font-size:12.5px;color:var(--text);
+  background:#fafcfa;outline:none;transition:var(--trans);
+}
+.lp-wrap input:focus{border-color:var(--green3);background:#fff;box-shadow:0 0 0 3px var(--green-glow)}
+.lp-hint{font-size:10.5px;color:var(--text3);margin-top:5px;display:flex;align-items:center;gap:4px;font-weight:500}
+.lp-hint svg{width:11px;height:11px;stroke:#2da44e;fill:none}
+.lp-btn{
+  width:100%;padding:13px;margin-top:8px;
+  background:linear-gradient(135deg,var(--green),var(--green3));
+  border:none;border-radius:10px;color:#fff;
+  font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;
+  box-shadow:0 6px 20px var(--green-glow);
+  transition:transform .15s,box-shadow .15s;
+  display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.3px;
+}
+.lp-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px var(--green-glow)}
+.lp-btn:active{transform:translateY(0)}
+.lp-btn svg{width:15px;height:15px;stroke:#fff;stroke-width:2.5;fill:none}
+.lp-footer{text-align:center;font-size:10px;color:var(--text3);margin-top:22px;font-weight:500}
+
+/* ═══ APP WRAPPER ═══ */
+#app{display:none;flex-direction:column;min-height:100vh}
+#app.on{display:flex;animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeOut{to{opacity:0;transform:scale(.97)}}
+
+/* ═══ HEADER ═══ */
+.hdr{position:sticky;top:0;z-index:200;height:var(--header-h);background:rgba(255,255,255,.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px 0 0;gap:12px}
+.hdr-logo{width:var(--sidebar-w);flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid var(--border);transition:width var(--trans)}
+.hdr-logo.collapsed{width:64px}
+.hdr-logo-mark{width:30px;height:30px;background:linear-gradient(135deg,var(--green),var(--green3));border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px var(--green-glow)}
+.hdr-logo-mark svg{width:16px;height:16px;stroke:#fff;stroke-width:2.5;fill:none}
+.hdr-logo-text{font-weight:800;font-size:15px;color:var(--green);letter-spacing:.8px;white-space:nowrap;transition:opacity var(--trans)}
+.hdr-logo.collapsed .hdr-logo-text{opacity:0;width:0;overflow:hidden}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3);flex:1;padding:0 16px}
+.breadcrumb span{color:var(--text2);font-weight:500}
+.bc-sep{opacity:.4}
+.hdr-search{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;cursor:text;transition:var(--trans);min-width:200px}
+.hdr-search:focus-within{border-color:var(--green3);box-shadow:0 0 0 3px var(--green-glow)}
+.hdr-search input{background:none;border:none;outline:none;font-family:inherit;font-size:12px;color:var(--text);width:100%}
+.hdr-search input::placeholder{color:var(--text3)}
+.kbd{font-size:10px;color:var(--text3);background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 5px;white-space:nowrap}
+.hdr-icons{display:flex;align-items:center;gap:4px;margin-left:12px}
+.icon-btn{width:34px;height:34px;border:none;background:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:var(--trans);position:relative}
+.icon-btn:hover{background:var(--surface2);color:var(--green)}
+.badge-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:#ef4444;border-radius:50%;border:2px solid #fff}
+.theme-btn{width:34px;height:34px;border:1px solid var(--border2);background:var(--surface2);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:var(--trans)}
+.theme-btn:hover{border-color:var(--green3);color:var(--green)}
+.hdr-user{display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:8px;cursor:pointer;transition:var(--trans);margin-left:8px}
+.hdr-user:hover{background:var(--surface2)}
+.user-avatar{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--green),var(--green3));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0}
+.user-name{font-size:12px;font-weight:600;color:var(--text)}
+.logout-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;border:1px solid var(--border2);border-radius:7px;background:var(--surface2);font-family:inherit;font-size:11.5px;font-weight:600;color:var(--text2);cursor:pointer;transition:var(--trans);margin-left:6px}
+.logout-btn:hover{border-color:var(--red);color:var(--red);background:#fff}
+.logout-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2}
+
+/* ═══ LAYOUT ═══ */
+.layout{display:flex;height:calc(100vh - var(--header-h));overflow:hidden}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;transition:width var(--trans)}
+.sidebar.collapsed{width:64px}
+.sidebar-top{padding:12px;border-bottom:1px solid var(--border)}
+.sidebar-search{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;transition:var(--trans)}
+.sidebar-search:focus-within{border-color:var(--green3);box-shadow:0 0 0 3px var(--green-glow)}
+.sidebar-search input{background:none;border:none;outline:none;font-family:inherit;font-size:12px;color:var(--text);width:100%}
+.sidebar-search input::placeholder{color:var(--text3)}
+.collapsed .sidebar-search input,.collapsed .sidebar-search svg.search-ico{display:none}
+.sidebar-scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px}
+.sidebar-scroll::-webkit-scrollbar{width:3px}
+.sidebar-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.sidebar-section{margin-bottom:4px}
+.sidebar-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;padding:8px 10px 4px;transition:opacity var(--trans)}
+.collapsed .sidebar-label{opacity:0;height:0;padding:0;overflow:hidden}
+.nav-item{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:var(--radius-sm);cursor:pointer;transition:var(--trans);color:var(--text2);font-size:12.5px;font-weight:500;position:relative;user-select:none;border:1px solid transparent}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:linear-gradient(135deg,rgba(26,107,46,.08),rgba(45,164,78,.06));color:var(--green);border-color:rgba(45,164,78,.2)}
+.nav-item.active .nav-icon{color:var(--green)}
+.nav-item.dragging{opacity:.5;background:var(--surface2)}
+.nav-item.drag-over{border-color:var(--green3);background:rgba(45,164,78,.06)}
+.nav-icon{width:18px;height:18px;flex-shrink:0;transition:var(--trans);display:flex;align-items:center;justify-content:center}
+.nav-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity var(--trans)}
+.collapsed .nav-label,.collapsed .nav-badge{opacity:0;width:0;overflow:hidden}
+.collapsed .nav-item{justify-content:center;padding:9px}
+.nav-badge{background:var(--green3);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:20px;flex-shrink:0}
+.nav-badge.amber{background:var(--amber)}
+.nav-badge.red{background:var(--red)}
+.drag-handle{width:14px;height:14px;display:flex;flex-direction:column;justify-content:center;gap:2.5px;cursor:grab;flex-shrink:0;opacity:0;transition:opacity var(--trans);margin-right:-2px}
+.drag-handle:active{cursor:grabbing}
+.drag-handle span{display:block;width:10px;height:1.5px;background:var(--text3);border-radius:2px}
+.nav-item:hover .drag-handle{opacity:.6}
+.sidebar-bottom{padding:12px;border-top:1px solid var(--border)}
+.sb-collapse-btn{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text2);font-size:12px;font-weight:500;transition:var(--trans)}
+.sb-collapse-btn:hover{background:var(--surface2);color:var(--text)}
+.collapsed .sb-collapse-btn{justify-content:center}
+
+/* ═══ MAIN ═══ */
+.main{flex:1;overflow-y:auto;overflow-x:hidden;background:var(--bg)}
+.main::-webkit-scrollbar{width:4px}
+.main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ═══ STATS ═══ */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;padding:20px 20px 0}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:var(--trans);position:relative;overflow:hidden;animation:fadeUp .4s ease both}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--green3);border-radius:var(--radius) var(--radius) 0 0;opacity:.7}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--green3)}
+.stat-card:nth-child(2){animation-delay:.05s}.stat-card:nth-child(3){animation-delay:.1s}.stat-card:nth-child(4){animation-delay:.15s}.stat-card:nth-child(5){animation-delay:.2s}.stat-card:nth-child(6){animation-delay:.25s}
+.stat-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.stat-icon-wrap{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,rgba(26,107,46,.12),rgba(45,164,78,.08));display:flex;align-items:center;justify-content:center}
+.stat-trend{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:20px}
+.stat-trend.up{background:rgba(34,197,94,.12);color:#16a34a}
+.stat-trend.down{background:rgba(239,68,68,.1);color:#dc2626}
+.stat-value{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-1px;line-height:1}
+.stat-label{font-size:11.5px;color:var(--text3);margin-top:4px;font-weight:500}
+.sparkline{margin-top:10px;height:28px}
+.sparkline svg{width:100%;height:28px}
+
+/* ═══ ACTION BUTTONS ═══ */
+.action-grid{display:flex;flex-wrap:wrap;gap:6px;padding:16px 20px 0}
+.act-btn{display:flex;align-items:center;gap:6px;padding:7px 13px;border-radius:7px;border:none;font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer;transition:var(--trans);white-space:nowrap}
+.act-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2}
+.act-btn:hover{transform:translateY(-1px);filter:brightness(1.08);box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.act-btn.green{background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;box-shadow:0 2px 8px var(--green-glow)}
+.act-btn.teal{background:linear-gradient(135deg,#0f766e,#14b8a6);color:#fff;box-shadow:0 2px 6px rgba(20,184,166,.25)}
+.act-btn.blue{background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;box-shadow:0 2px 6px rgba(37,99,235,.25)}
+.act-btn.amber{background:linear-gradient(135deg,#b45309,var(--amber));color:#fff;box-shadow:0 2px 6px rgba(217,119,6,.25)}
+.act-btn.red{background:linear-gradient(135deg,#b91c1c,var(--red));color:#fff;box-shadow:0 2px 6px rgba(220,38,38,.25)}
+.act-btn.purple{background:linear-gradient(135deg,#6d28d9,#7c3aed);color:#fff;box-shadow:0 2px 6px rgba(109,40,217,.25)}
+.act-btn.slate{background:linear-gradient(135deg,#334155,#475569);color:#fff}
+.act-btn.indigo{background:linear-gradient(135deg,#312e81,#4f46e5);color:#fff;box-shadow:0 2px 6px rgba(79,70,229,.25)}
+.act-btn.pink{background:linear-gradient(135deg,#9d174d,#db2777);color:#fff}
+
+/* ═══ SECTION HEADER ═══ */
+.section-hdr{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 12px}
+.section-title{font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.section-count{background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
+
+/* ═══ FILTER BAR ═══ */
+.filter-bar{margin:0 20px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;animation:fadeUp .3s ease both}
+.filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.filter-label{font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap}
+.f-select,.f-input{border:1px solid var(--border2);border-radius:7px;padding:6px 10px;font-family:inherit;font-size:12px;color:var(--text);background:var(--surface2);outline:none;transition:var(--trans);min-width:140px;cursor:pointer}
+.f-select:focus,.f-input:focus{border-color:var(--green3);box-shadow:0 0 0 3px var(--green-glow);background:#fff}
+.filter-actions{display:flex;gap:6px;margin-left:auto}
+.f-btn{padding:6px 14px;border:none;border-radius:7px;font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer;transition:var(--trans)}
+.f-btn.primary{background:var(--green3);color:#fff}.f-btn.primary:hover{background:var(--green2)}
+.f-btn.ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}.f-btn.ghost:hover{border-color:var(--red);color:var(--red)}
+
+/* ═══ TABLE ═══ */
+.table-wrap{margin:0 20px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;animation:fadeUp .35s .1s ease both}
+.table-toolbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border)}
+.tb-search{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:6px 10px;flex:1;max-width:260px}
+.tb-search input{background:none;border:none;outline:none;font-family:inherit;font-size:12px;color:var(--text);width:100%}
+.tb-search input::placeholder{color:var(--text3)}
+.tb-actions{display:flex;align-items:center;gap:6px;margin-left:auto}
+.tb-btn{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--border2);border-radius:6px;background:var(--surface2);font-family:inherit;font-size:11.5px;font-weight:600;color:var(--text2);cursor:pointer;transition:var(--trans)}
+.tb-btn svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2}
+.tb-btn:hover{border-color:var(--green3);color:var(--green);background:#fff}
+.tb-btn.danger:hover{border-color:var(--red);color:var(--red)}
+.table-scroll{overflow-x:auto}
+.table-scroll::-webkit-scrollbar{height:3px}
+.table-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+table{width:100%;border-collapse:collapse;min-width:620px}
+thead tr{background:var(--surface2);border-bottom:1px solid var(--border2)}
+thead th{padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;cursor:pointer;user-select:none;transition:color var(--trans)}
+thead th:hover{color:var(--green)}
+thead th.sorted{color:var(--green)}
+thead th .th-inner{display:flex;align-items:center;gap:4px}
+tbody tr{border-bottom:1px solid var(--border);transition:background var(--trans);animation:rowIn .25s ease both}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(26,107,46,.03)}
+tbody tr.selected{background:rgba(45,164,78,.06)}
+td{padding:10px 14px;font-size:12.5px;color:var(--text2);white-space:nowrap}
+td.td-id{font-weight:700;color:var(--green);font-size:12px}
+td.td-farmer{font-weight:600;color:var(--text)}
+.status-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:600}
+.status-badge.reg{background:rgba(34,197,94,.1);color:#15803d}
+.status-badge.select{background:rgba(37,99,235,.1);color:#1d4ed8}
+.cb-col{width:40px;text-align:center}
+input[type=checkbox]{width:14px;height:14px;accent-color:var(--green);cursor:pointer}
+.sort-icon{font-size:9px;opacity:.4}
+.sort-icon.asc,.sort-icon.desc{opacity:1;color:var(--green)}
+.row-actions{display:flex;align-items:center;gap:4px;opacity:0;transition:opacity var(--trans)}
+tr:hover .row-actions{opacity:1}
+.row-action-btn{width:24px;height:24px;border:1px solid var(--border2);border-radius:5px;background:var(--surface);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--trans)}
+.row-action-btn:hover{border-color:var(--green3);background:rgba(45,164,78,.06)}
+
+/* ═══ PAGINATION ═══ */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--border);background:var(--surface2)}
+.pg-info{font-size:11.5px;color:var(--text3)}
+.pg-btns{display:flex;align-items:center;gap:4px}
+.pg-btn{width:28px;height:28px;border:1px solid var(--border2);border-radius:6px;background:var(--surface);font-family:inherit;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:var(--trans);display:flex;align-items:center;justify-content:center}
+.pg-btn:hover{border-color:var(--green3);color:var(--green);background:#fff}
+.pg-btn.active{background:var(--green3);border-color:var(--green3);color:#fff}
+.pg-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ═══ BULK BAR ═══ */
+.bulk-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(26,107,46,.06);border-bottom:1px solid rgba(26,107,46,.15);font-size:12px;font-weight:600;color:var(--green);animation:slideDown .2s ease}
+
+/* ═══ COLUMN PANEL ═══ */
+.col-panel{position:absolute;right:0;top:calc(100%+4px);background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow-lg);min-width:180px;z-index:100;display:none;animation:fadeUp .15s ease}
+.col-panel.open{display:block}
+.col-panel-title{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:7px;padding:0 6px}
+.col-panel label{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:6px;cursor:pointer;transition:background var(--trans);font-size:12px;font-weight:500}
+.col-panel label:hover{background:var(--surface2)}
+
+/* ═══ TOAST ═══ */
+.toast-container{position:fixed;bottom:16px;right:16px;display:flex;flex-direction:column;gap:8px;z-index:9000;pointer-events:none}
+.toast{background:var(--text);color:#fff;padding:10px 16px;border-radius:10px;font-size:12.5px;font-weight:500;box-shadow:var(--shadow-lg);animation:fadeUp .25s ease;pointer-events:all;display:flex;align-items:center;gap:8px;max-width:280px}
+.toast.success{background:#15803d}.toast.error{background:#b91c1c}.toast.info{background:#1d4ed8}
+
+/* ═══ ANIMATIONS ═══ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes rowIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:700px){
+  :root{--sidebar-w:64px;--header-h:50px}
+  .hdr-logo-text,.hdr-search,.breadcrumb,.user-name{display:none}
+  .hdr-logo{width:64px;border:none}
+  .sidebar{width:64px}
+  .stats-grid{grid-template-columns:1fr 1fr;padding:12px}
+  .action-grid{padding:10px 12px}
+  .table-wrap,.filter-bar{margin:0 12px 12px}
+}
+</style>
+</head>
+<body>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ═══════════════ LOGIN PAGE ═══════════════ -->
+<div id="loginPage">
+  <div class="lp-orb lp-orb1"></div>
+  <div class="lp-orb lp-orb2"></div>
+  <div class="lp-orb lp-orb3"></div>
+  <div class="lp-grid"></div>
+  <div class="lp-card">
+    <div class="lp-logo">
+      <div class="lp-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 22V12m0 0C12 6 6 4 2 7c4 0 8 2 10 5zm0 0c0-6 6-8 10-5-4 0-8 2-10 5"/></svg>
+      </div>
+      <h1>SAWIE</h1>
+      <p>AGRICULTURAL MANAGEMENT SYSTEM</p>
+    </div>
+    <div style="text-align:center;margin-bottom:22px">
+      <span class="lp-pill">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Secure Portal Access
+      </span>
+    </div>
+    <div class="lp-err" id="lpErr">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="lpErrText">Please fill in both fields to continue.</span>
+    </div>
+    <div id="lpLoginFields">
+      <div class="lp-field">
+        <label>Username</label>
+        <div class="lp-wrap">
+          <svg class="fi" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <input type="text" id="lpUser" placeholder="Enter your username" autocomplete="off">
+        </div>
+      </div>
+      <div class="lp-field">
+        <label>Password</label>
+        <div class="lp-wrap">
+          <svg class="fi" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" id="lpPass" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <p class="lp-hint" id="lpHint">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span id="lpHintText">First time? Enter a username &amp; password — they'll be locked in for next time.</span>
+        </p>
+        <p style="text-align:right;margin-top:6px">
+          <a href="#" id="lpForgotLink" onclick="openForgotPassword(event)" style="font-size:11px;color:var(--green2);font-weight:600;text-decoration:none;display:none">Forgot Password?</a>
+        </p>
+      </div>
+      <button class="lp-btn" onclick="doLogin()">
+        <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Sign In to Dashboard
+      </button>
+    </div>
+
+    <!-- FORGOT / RESET PASSWORD PANEL -->
+    <div id="lpResetFields" style="display:none">
+      <div class="lp-field">
+        <label>Username</label>
+        <div class="lp-wrap">
+          <svg class="fi" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <input type="text" id="lpResetUser" placeholder="Enter your username" autocomplete="off">
+        </div>
+      </div>
+      <div class="lp-field">
+        <label>New Password</label>
+        <div class="lp-wrap">
+          <svg class="fi" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" id="lpResetNew" placeholder="Enter new password">
+        </div>
+      </div>
+      <div class="lp-field">
+        <label>Confirm New Password</label>
+        <div class="lp-wrap">
+          <svg class="fi" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" id="lpResetConfirm" placeholder="Re-enter new password" onkeydown="if(event.key==='Enter')doResetPassword()">
+        </div>
+      </div>
+      <button class="lp-btn" onclick="doResetPassword()">
+        <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+        Reset Password
+      </button>
+      <p style="text-align:center;margin-top:14px">
+        <a href="#" onclick="closeForgotPassword(event)" style="font-size:11.5px;color:var(--text3);font-weight:600;text-decoration:none">← Back to Sign In</a>
+      </p>
+    </div>
+
+    <p class="lp-footer">© 2024 SAWIE · Agricultural Intelligence Platform</p>
+  </div>
+</div>
+
+<!-- ═══════════════ ADD-RECORD MODAL ═══════════════ -->
+<div id="recModalOverlay" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(6,20,10,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:20px">
+  <div id="recModal" style="background:#fff;border-radius:16px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.35);animation:lpSlide .3s cubic-bezier(.16,1,.3,1) both">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border)">
+      <h2 id="recModalTitle" style="font-size:15px;font-weight:800;color:var(--text)">Add Record</h2>
+      <button onclick="closeRecordModal()" style="width:30px;height:30px;border:none;background:var(--surface2);border-radius:8px;cursor:pointer;color:var(--text2);display:flex;align-items:center;justify-content:center">
+        <svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="recModalBody" style="padding:20px 22px"></div>
+    <div style="display:flex;gap:8px;padding:16px 22px;border-top:1px solid var(--border)">
+      <button onclick="closeRecordModal()" style="flex:1;padding:10px;border-radius:9px;border:1px solid var(--border2);background:var(--surface2);font-family:inherit;font-size:12.5px;font-weight:700;color:var(--text2);cursor:pointer">Cancel</button>
+      <button onclick="submitRecordModal()" style="flex:1;padding:10px;border-radius:9px;border:none;background:linear-gradient(135deg,var(--green),var(--green3));font-family:inherit;font-size:12.5px;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 4px 14px var(--green-glow)">Save Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DASHBOARD APP ═══════════════ -->
+<div id="app">
+
+  <!-- HEADER -->
+  <header class="hdr">
+    <div class="hdr-logo" id="hdrLogo">
+      <div class="hdr-logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 22V12m0 0C12 6 6 4 2 7c4 0 8 2 10 5zm0 0c0-6 6-8 10-5-4 0-8 2-10 5"/></svg>
+      </div>
+      <span class="hdr-logo-text">SAWIE</span>
+    </div>
+    <div class="breadcrumb">
+      <span>Dashboard</span>
+      <span class="bc-sep">/</span>
+      <span>Field Management</span>
+      <span class="bc-sep">/</span>
+      <span style="color:var(--green);font-weight:600">Manage Sub Fields</span>
+    </div>
+    <div class="hdr-search" style="margin-left:auto">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input placeholder="Search farmers, fields…" id="globalSearch" oninput="handleGlobalSearch(this.value)">
+      <span class="kbd">⌘K</span>
+    </div>
+    <div class="hdr-icons">
+      <button class="icon-btn" onclick="showToast('3 new notifications','info')" title="Notifications">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="badge-dot"></span>
+      </button>
+      <button class="icon-btn" onclick="showToast('No new messages','info')" title="Messages">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </button>
+      <button class="icon-btn" onclick="showToast('Download started','success')" title="Download">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
+      <button class="theme-btn" onclick="showToast('Dark mode coming soon','info')" title="Toggle theme">
+        <svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </div>
+    <div class="hdr-user" onclick="showToast('Profile settings…','info')" style="margin-left:8px">
+      <div class="user-avatar" id="uAvatar">A</div>
+      <div>
+        <div class="user-name" id="uName">Admin</div>
+        <div style="font-size:10px;color:var(--text3)">System Administrator</div>
+      </div>
+      <svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;color:var(--text3);margin-left:4px"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Logout
+    </button>
+  </header>
+
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <div class="sidebar-search">
+          <svg class="icon search-ico" viewBox="0 0 24 24" style="width:13px;height:13px;color:var(--text3);flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input placeholder="Search menu…" id="menuSearch" oninput="filterMenu(this.value)">
+        </div>
+      </div>
+      <div class="sidebar-scroll" id="sidebarNav"></div>
+      <div class="sidebar-bottom">
+        <div class="sb-collapse-btn" onclick="toggleSidebar()">
+          <svg class="icon" viewBox="0 0 24 24" id="collapseIcon"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          <span class="nav-label" style="font-size:12px;font-weight:600;color:var(--text2)">Collapse</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main" id="mainContent">
+
+      <!-- ACTION BUTTONS -->
+      <div class="action-grid">
+        <button class="act-btn green" onclick="openRecordModal('farmer')">
+          <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          Add New Farmer
+        </button>
+        <button class="act-btn green" onclick="openRecordModal('subfield')">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          New Sub Field
+        </button>
+        <button class="act-btn teal" onclick="openRecordModal('crop')">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Add Crop Record
+        </button>
+        <button class="act-btn blue" onclick="openRecordModal('rep')">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+          Add Field Rep
+        </button>
+        <button class="act-btn amber" onclick="openRecordModal('city')">
+          <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+          Add City / Region
+        </button>
+        <button class="act-btn red" onclick="showMissingNDVI()">
+          <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Missing NDVI
+        </button>
+        <button class="act-btn purple" onclick="handleSidebarAction('sb3','Fields Map')">
+          <svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          Fields Map
+        </button>
+        <button class="act-btn slate" onclick="showIndicesStatus()">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Indices Status
+        </button>
+        <button class="act-btn indigo" onclick="applySalesFilter()">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+          Sales Filter
+        </button>
+        <button class="act-btn pink" onclick="openSingleFarmerView()">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Single Farmer View
+        </button>
+      </div>
+
+      <!-- STATS GRID -->
+      <div id="dashboardView">
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <!-- SECTION HEADER -->
+      <div class="section-hdr">
+        <div class="section-title">
+          <svg class="icon" viewBox="0 0 24 24" style="color:var(--green)"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+          Manage Sub Fields
+          <span class="section-count" id="rowCount">— records</span>
+        </div>
+        <select class="f-select" style="min-width:80px;font-size:11px;padding:4px 8px" onchange="changeRowsPerPage(this.value)">
+          <option value="10">10 / page</option>
+          <option value="25" selected>25 / page</option>
+          <option value="50">50 / page</option>
+        </select>
+      </div>
+
+      <!-- FILTER BAR -->
+      <div class="filter-bar">
+        <div class="filter-row">
+          <span class="filter-label">Filter:</span>
+          <select class="f-select" id="filterFarmer" onchange="applyFilters()"><option value="">All Farmers</option></select>
+          <select class="f-select" id="filterCrop" onchange="applyFilters()">
+            <option value="">All Crops</option>
+            <option>Rice</option><option>Cotton</option><option>Wheat</option><option>Maize</option>
+          </select>
+          <select class="f-select" id="filterCity" onchange="applyFilters()"><option value="">All Cities</option></select>
+          <select class="f-select" id="filterClass" onchange="applyFilters()">
+            <option value="">All Classes</option>
+            <option>Self Register</option><option>Select Class</option>
+          </select>
+          <div class="filter-actions">
+            <button class="f-btn primary" onclick="applyFilters()">Apply</button>
+            <button class="f-btn ghost" onclick="resetFilters()">Reset</button>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- TABLE -->
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <div class="tb-search">
+            <svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px;color:var(--text3);flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input placeholder="Search in table…" id="tableSearch" oninput="applyFilters()">
+          </div>
+          <div class="tb-actions">
+            <button class="tb-btn" onclick="exportCSV()">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export CSV
+            </button>
+            <div style="position:relative">
+              <button class="tb-btn" onclick="toggleExportPanel()" id="exportModBtn">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export Module Data
+              </button>
+              <div class="col-panel" id="exportModPanel">
+                <div class="col-panel-title">Export saved records</div>
+                <label style="cursor:pointer" onclick="exportModuleCSV('farmer')">👨‍🌾 Farmers</label>
+                <label style="cursor:pointer" onclick="exportModuleCSV('subfield')">🗺️ Sub Fields</label>
+                <label style="cursor:pointer" onclick="exportModuleCSV('crop')">🌾 Crop Records</label>
+                <label style="cursor:pointer" onclick="exportModuleCSV('rep')">🧑‍💼 Field Reps</label>
+                <label style="cursor:pointer" onclick="exportModuleCSV('city')">🏙️ Cities / Regions</label>
+              </div>
+            </div>
+            <div style="position:relative">
+              <button class="tb-btn" onclick="toggleColPanel()" id="colBtn">
+                <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                Columns
+              </button>
+              <div class="col-panel" id="colPanel">
+                <div class="col-panel-title">Toggle columns</div>
+                <label><input type="checkbox" checked onchange="toggleColumn('area',this.checked)"> Field Area</label>
+                <label><input type="checkbox" checked onchange="toggleColumn('rep',this.checked)"> Sawie Reps.</label>
+                <label><input type="checkbox" checked onchange="toggleColumn('cls',this.checked)"> Customer Class</label>
+                <label><input type="checkbox" checked onchange="toggleColumn('city',this.checked)"> City</label>
+              </div>
+            </div>
+            <button class="tb-btn danger" id="bulkDeleteBtn" style="display:none" onclick="bulkDelete()">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              Delete Selected
+            </button>
+          </div>
+        </div>
+        <div id="bulkBar" style="display:none">
+          <div class="bulk-bar">
+            <span id="bulkCount">0</span> rows selected
+            <button class="f-btn ghost" style="margin-left:8px;padding:4px 10px;font-size:11px" onclick="clearSelection()">Clear</button>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="paginationBar"></div>
+      </div>
+      </div><!-- /dashboardView -->
+
+      <!-- RECORDS VIEW (Farmer Listing, Sub Field Mgmt, District Fields, Inactive List, etc.) -->
+      <div id="recordsView" style="display:none;padding:20px">
+        <div class="section-hdr" style="padding:0 0 12px">
+          <div class="section-title">
+            <svg class="icon" id="recViewIcon" viewBox="0 0 24 24" style="color:var(--green)"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+            <span id="recViewTitle">Records</span>
+            <span class="section-count" id="recViewCount">0 records</span>
+          </div>
+          <button class="f-btn ghost" onclick="backToDashboard()">← Back to Dashboard</button>
+        </div>
+        <div class="table-wrap" style="margin:0">
+          <div class="table-scroll">
+            <table>
+              <thead id="recViewHead"></thead>
+              <tbody id="recViewBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════
+const ALL_ROWS=[];
+
+const SIDEBAR_SECTIONS=[
+  {label:'Quick Actions',key:'quick',items:[
+    {id:'sb1',icon:'<svg class="icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',label:'Dashboard',badge:null,active:true},
+    {id:'sb2',icon:'<svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>',label:'Add New Farmer',badge:null},
+    {id:'sb3',icon:'<svg class="icon" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>',label:'Fields Map',badge:null},
+    {id:'sb4',icon:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',label:'Sawie Passbook',badge:null},
+  ]},
+  {label:'Farm Management',key:'farm',items:[
+    {id:'sb5',icon:'<svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',label:'Farmer Listing',badge:'30',active:false},
+    {id:'sb6',icon:'<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>',label:'Sub Field Mgmt.',badge:null},
+    {id:'sb7',icon:'<svg class="icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',label:'Landmass Management',badge:null},
+    {id:'sb8',icon:'<svg class="icon" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',label:'District Fields',badge:'3',badgeColor:'amber'},
+    {id:'sb9',icon:'<svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="11" x2="23" y2="11"/></svg>',label:'Inactive Farmer List',badge:null},
+    {id:'sb10',icon:'<svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',label:'Import Farmer',badge:null},
+  ]},
+  {label:'Crop & Horticulture',key:'crop',items:[
+    {id:'sb11',icon:'<svg class="icon" viewBox="0 0 24 24"><path d="M12 22V12m0 0C12 6 6 4 2 7c4 0 8 2 10 5zm0 0c0-6 6-8 10-5-4 0-8 2-10 5"/></svg>',label:'Field Crop',badge:null},
+    {id:'sb12',icon:'<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>',label:'Field Horticulture',badge:null},
+    {id:'sb13',icon:'<svg class="icon" viewBox="0 0 24 24"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/></svg>',label:'Field Forestry',badge:null},
+    {id:'sb14',icon:'<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>',label:'NDVI View',badge:null},
+    {id:'sb15',icon:'<svg class="icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>',label:'Missing NDVI',badge:'12',badgeColor:'red'},
+    {id:'sb16',icon:'<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',label:'Crop Calendar',badge:null},
+  ]},
+  {label:'Administration',key:'admin',items:[
+    {id:'sb17',icon:'<svg class="icon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',label:'Push Notifications',badge:null},
+    {id:'sb18',icon:'<svg class="icon" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 12 19.79 19.79 0 0 1 1.93 3.26 2 2 0 0 1 3.91 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',label:'Call Center Mgmt.',badge:null},
+    {id:'sb19',icon:'<svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',label:'Manage User Role',badge:null},
+    {id:'sb20',icon:'<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>',label:'Manage Settings',badge:null},
+    {id:'sb21',icon:'<svg class="icon" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',label:'Campaign Mgmt.',badge:null},
+    {id:'sb22',icon:'<svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',label:'Generate Report',badge:null},
+  ]},
+];
+
+const COLS=[
+  {key:'id',label:'Sawie #',sortable:true},
+  {key:'farmer',label:'Farmer Name',sortable:true},
+  {key:'field',label:'Field Name',sortable:true},
+  {key:'area',label:'Field Area',sortable:false},
+  {key:'rep',label:'Sawie Reps.',sortable:false},
+  {key:'cls',label:'Customer Class',sortable:true},
+  {key:'city',label:'City',sortable:true},
+];
+
+// ══════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════
+let filteredRows=[...ALL_ROWS],currentPage=1,rowsPerPage=25,sortCol='',sortDir=1;
+let selectedRows=new Set(),hiddenCols=new Set(),sidebarCollapsed=false,dragSrc=null;
+
+// ══════════════════════════════════════
+//  LOGIN / LOGOUT
+// ══════════════════════════════════════
+function getAccount(){try{const s=localStorage.getItem('sawie_account');return s?JSON.parse(s):null}catch{return null}}
+function saveAccount(u,p){try{localStorage.setItem('sawie_account',JSON.stringify({username:u,password:p}))}catch{}}
+function showLoginError(msg){
+  const err=document.getElementById('lpErr');
+  document.getElementById('lpErrText').textContent=msg;
+  err.classList.add('show');
+}
+function doLogin(){
+  const u=document.getElementById('lpUser').value.trim();
+  const p=document.getElementById('lpPass').value.trim();
+  const err=document.getElementById('lpErr');
+  err.classList.remove('show');
+  document.getElementById('lpForgotLink').style.display='none';
+  if(!u||!p){showLoginError('Please fill in both fields to continue.');return}
+  const account=getAccount();
+  if(!account){
+    // first time ever -> lock in this username & password
+    saveAccount(u,p);
+  } else if(account.username!==u || account.password!==p){
+    showLoginError('Incorrect username or password.');
+    document.getElementById('lpForgotLink').style.display='inline';
+    return;
+  }
+  const name=u.charAt(0).toUpperCase()+u.slice(1);
+  document.getElementById('uName').textContent=name;
+  document.getElementById('uAvatar').textContent=name.charAt(0).toUpperCase();
+  const lp=document.getElementById('loginPage');
+  lp.style.animation='lpFadeOut .4s ease forwards';
+  setTimeout(()=>{
+    lp.style.display='none';
+    const app=document.getElementById('app');
+    app.style.display='flex';
+    app.style.animation='fadeIn .4s ease';
+    renderSidebar();refreshDashboard();
+  },380);
+}
+function openForgotPassword(e){
+  e.preventDefault();
+  document.getElementById('lpErr').classList.remove('show');
+  document.getElementById('lpLoginFields').style.display='none';
+  document.getElementById('lpResetFields').style.display='block';
+  document.getElementById('lpResetUser').value=document.getElementById('lpUser').value;
+  document.getElementById('lpResetNew').value='';
+  document.getElementById('lpResetConfirm').value='';
+}
+function closeForgotPassword(e){
+  if(e)e.preventDefault();
+  document.getElementById('lpErr').classList.remove('show');
+  document.getElementById('lpResetFields').style.display='none';
+  document.getElementById('lpLoginFields').style.display='block';
+}
+function doResetPassword(){
+  const u=document.getElementById('lpResetUser').value.trim();
+  const p1=document.getElementById('lpResetNew').value.trim();
+  const p2=document.getElementById('lpResetConfirm').value.trim();
+  if(!u||!p1||!p2){showLoginError('Please fill in all fields to reset your password.');return}
+  if(p1!==p2){showLoginError('New password and confirmation do not match.');return}
+  saveAccount(u,p1);
+  document.getElementById('lpErr').classList.remove('show');
+  closeForgotPassword();
+  document.getElementById('lpUser').value=u;
+  document.getElementById('lpPass').value='';
+  showToast('Username & password reset successfully. Please sign in.','success');
+}
+function doLogout(){
+  document.getElementById('lpUser').value='';
+  document.getElementById('lpPass').value='';
+  closeForgotPassword();
+  const app=document.getElementById('app');
+  app.style.display='none';
+  const lp=document.getElementById('loginPage');
+  lp.style.display='flex';
+  lp.style.animation='none';
+  showToast('Logged out successfully','info');
+}
+const _st=document.createElement('style');
+_st.textContent='@keyframes lpFadeOut{to{opacity:0;transform:scale(.97)}} @keyframes fadeIn{from{opacity:0}to{opacity:1}}';
+document.head.appendChild(_st);
+
+// Enter key on username field
+document.getElementById('lpUser').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+
+// ══════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════
+function showToast(msg,type='info'){
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div');
+  t.className='toast '+type;
+  const icons={success:'✓',error:'✕',info:'ℹ'};
+  t.innerHTML=`<span style="font-size:14px;font-weight:700">${icons[type]}</span>${msg}`;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.transition='all .3s ease';t.style.opacity='0';t.style.transform='translateY(8px)';setTimeout(()=>t.remove(),300)},2800);
+}
+
+// ══════════════════════════════════════
+//  SPARKLINE
+// ══════════════════════════════════════
+function sparklineSVG(data,up){
+  const w=80,h=28,pad=2;
+  const min=Math.min(...data),max=Math.max(...data),range=max-min||1;
+  const pts=data.map((v,i)=>`${pad+i*(w-pad*2)/(data.length-1)},${h-pad-(v-min)/range*(h-pad*2)}`).join(' ');
+  const color=up?'#22c55e':'#ef4444';
+  return `<svg viewBox="0 0 ${w} ${h}" fill="none"><polyline points="${pts}" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/></svg>`;
+}
+
+// ══════════════════════════════════════
+//  STATS
+// ══════════════════════════════════════
+function computeLiveStats(){
+  const farmers=getRecordData('sawie_data_farmers');
+  const subfields=getRecordData('sawie_data_subfields');
+  const crops=getRecordData('sawie_data_crops');
+  const totalFarmers=farmers.length;
+  const totalFields=subfields.length;
+  const totalCrops=crops.length;
+  const horticulture=crops.filter(c=>/fruit|vegetable|horticulture|orchard/i.test(c.cropName||'')).length;
+  const totalAcres=subfields.reduce((s,r)=>s+(parseFloat(r.area)||0),0);
+  const activeFarmers=farmers.filter(f=>f.status!=='Inactive').length || totalFarmers;
+  const missingNdvi=subfields.filter(sf=>!sf.gpsCoords).length;
+  return [
+    {label:'Total Farmers',value:totalFarmers,change:totalFarmers?'live':'—',up:true,spark:[0,0,0,0,0,0,0,0,0,totalFarmers||1],
+     icon:'<svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'},
+    {label:'Total Fields',value:totalFields,change:totalFields?'live':'—',up:true,spark:[0,0,0,0,0,0,0,0,0,totalFields||1],
+     icon:'<svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>'},
+    {label:'Total Crops',value:totalCrops,change:totalCrops?'live':'—',up:true,spark:[0,0,0,0,0,0,0,0,0,totalCrops||1],
+     icon:'<svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M12 22V12m0 0C12 6 6 4 2 7c4 0 8 2 10 5zm0 0c0-6 6-8 10-5-4 0-8 2-10 5"/></svg>'},
+    {label:'Horticulture',value:horticulture,change:horticulture?'live':'—',up:true,spark:[0,0,0,0,0,0,0,0,0,horticulture||1],
+     icon:'<svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>'},
+    {label:'Total Acres',value:Math.round(totalAcres),change:totalAcres?'live':'—',up:true,spark:[0,0,0,0,0,0,0,0,0,Math.round(totalAcres)||1],
+     icon:'<svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>'},
+    {label:'Active Farmers',value:activeFarmers,change:activeFarmers?'live':'—',up:true,spark:[0,0,0,0,0,0,0,0,0,activeFarmers||1],
+     icon:'<svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'},
+    {label:'Missing NDVI',value:missingNdvi,change:missingNdvi?'needs data':'—',up:false,spark:[0,0,0,0,0,0,0,0,0,missingNdvi||1],
+     icon:'<svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>'},
+  ];
+}
+function renderStats(){
+  const stats=computeLiveStats();
+  document.getElementById('statsGrid').innerHTML=stats.map((s,i)=>`
+    <div class="stat-card" onclick="handleStatClick('${s.label}')" style="animation-delay:${i*.05}s">
+      <div class="stat-top">
+        <div class="stat-icon-wrap">${s.icon}</div>
+        <span class="stat-trend ${s.up?'up':'down'}">${s.change}</span>
+      </div>
+      <div class="stat-value" data-target="${s.value}">0</div>
+      <div class="stat-label">${s.label}</div>
+      <div class="sparkline">${sparklineSVG(s.spark,s.up)}</div>
+    </div>`).join('');
+  document.querySelectorAll('.stat-value').forEach(el=>{
+    const t=parseInt(el.dataset.target)||0;
+    if(t===0){el.textContent='0';return}
+    let v=0;const step=t/40;
+    const tick=()=>{v+=step;if(v>=t){el.textContent=t.toLocaleString();return}
+      el.textContent=Math.floor(v).toLocaleString();requestAnimationFrame(tick)};
+    setTimeout(()=>requestAnimationFrame(tick),150);
+  });
+}
+function handleStatClick(label){
+  if(label==='Total Farmers')return handleSidebarAction('sb5','Farmer Listing');
+  if(label==='Total Fields')return handleSidebarAction('sb6','Sub Field Mgmt.');
+  if(label==='Missing NDVI')return showMissingNDVI();
+  showToast(label,'info');
+}
+
+// ══════════════════════════════════════
+//  SIDEBAR
+// ══════════════════════════════════════
+function getSidebarOrder(){try{const s=localStorage.getItem('sawie_sb');return s?JSON.parse(s):null}catch{return null}}
+function saveSidebarOrder(o){try{localStorage.setItem('sawie_sb',JSON.stringify(o))}catch{}}
+
+function renderSidebar(filter=''){
+  const nav=document.getElementById('sidebarNav');
+  nav.innerHTML='';
+  const saved=getSidebarOrder();
+  SIDEBAR_SECTIONS.forEach(sec=>{
+    const items=saved&&saved[sec.key]?saved[sec.key].map(id=>sec.items.find(i=>i.id===id)).filter(Boolean):sec.items;
+    const vis=filter?items.filter(i=>i.label.toLowerCase().includes(filter.toLowerCase())):items;
+    if(!vis.length)return;
+    const sd=document.createElement('div');sd.className='sidebar-section';
+    const lb=document.createElement('div');lb.className='sidebar-label';lb.textContent=sec.label;
+    sd.appendChild(lb);
+    vis.forEach(item=>{
+      const div=document.createElement('div');
+      div.className='nav-item'+(item.active?' active':'');
+      div.dataset.id=item.id;div.dataset.section=sec.key;div.draggable=true;
+      div.innerHTML=`
+        <div class="drag-handle" title="Drag to reorder"><span></span><span></span><span></span></div>
+        <div class="nav-icon">${item.icon}</div>
+        <span class="nav-label">${item.label}</span>
+        ${item.badge?`<span class="nav-badge ${item.badgeColor||''}">${item.badge}</span>`:''}
+      `;
+      div.addEventListener('click',()=>{
+        document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+        div.classList.add('active');
+        handleSidebarAction(item.id,item.label);
+      });
+      div.addEventListener('dragstart',e=>{dragSrc={id:item.id,section:sec.key};div.classList.add('dragging');e.dataTransfer.effectAllowed='move'});
+      div.addEventListener('dragend',()=>{div.classList.remove('dragging');document.querySelectorAll('.drag-over').forEach(n=>n.classList.remove('drag-over'))});
+      div.addEventListener('dragover',e=>{e.preventDefault();div.classList.add('drag-over')});
+      div.addEventListener('dragleave',()=>div.classList.remove('drag-over'));
+      div.addEventListener('drop',e=>{
+        e.preventDefault();div.classList.remove('drag-over');
+        if(!dragSrc||dragSrc.id===item.id||dragSrc.section!==sec.key)return;
+        const so=SIDEBAR_SECTIONS.find(s=>s.key===sec.key);
+        const sv=getSidebarOrder()||{};
+        const cur=sv[sec.key]||so.items.map(i=>i.id);
+        const si=cur.indexOf(dragSrc.id),di=cur.indexOf(item.id);
+        if(si<0||di<0)return;
+        cur.splice(si,1);cur.splice(di,0,dragSrc.id);
+        sv[sec.key]=cur;saveSidebarOrder(sv);
+        dragSrc=null;renderSidebar(document.getElementById('menuSearch').value);
+        showToast('Menu order saved','success');
+      });
+      sd.appendChild(div);
+    });
+    nav.appendChild(sd);
+  });
+}
+
+function filterMenu(val){renderSidebar(val)}
+
+// ══════════════════════════════════════
+//  SIDEBAR ACTIONS — make every quick-action/menu item actually do something
+// ══════════════════════════════════════
+function backToDashboard(){
+  document.getElementById('recordsView').style.display='none';
+  document.getElementById('dashboardView').style.display='block';
+}
+function showRecordsView(title,rows,cols){
+  document.getElementById('dashboardView').style.display='none';
+  const rv=document.getElementById('recordsView');
+  rv.style.display='block';
+  document.getElementById('recViewTitle').textContent=title;
+  document.getElementById('recViewCount').textContent=rows.length+' records';
+  const head=document.getElementById('recViewHead');
+  const body=document.getElementById('recViewBody');
+  if(!rows.length){
+    head.innerHTML='';
+    body.innerHTML=`<tr><td style="text-align:center;padding:40px;color:var(--text3)">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <svg class="icon" viewBox="0 0 24 24" style="width:32px;height:32px;opacity:.3"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+        <span style="font-weight:600">No records found</span>
+      </div></td></tr>`;
+    return;
+  }
+  head.innerHTML=`<tr>${cols.map(c=>`<th>${c.label}</th>`).join('')}</tr>`;
+  body.innerHTML=rows.map(r=>`<tr>${cols.map(c=>`<td>${r[c.key]!=null&&r[c.key]!==''?r[c.key]:'—'}</td>`).join('')}</tr>`).join('');
+}
+function handleSidebarAction(id,label){
+  switch(id){
+    case 'sb1': // Dashboard
+      backToDashboard();
+      showToast('Dashboard','info');
+      break;
+    case 'sb2': // Add New Farmer
+      openRecordModal('farmer');
+      break;
+    case 'sb3': { // Fields Map
+      const rows=filteredRows.slice(0,25).map(r=>({name:r.farmer+' — '+r.field,notes:`${r.area} · ${r.city}`}));
+      showFieldsMapFallback(rows);
+      break;
+    }
+    case 'sb4': { // Sawie Passbook
+      const farmers=getRecordData('sawie_data_farmers');
+      showRecordsView('Sawie Passbook — Saved Farmer Entries',farmers,[
+        {key:'name',label:'Farmer Name'},{key:'cnic',label:'CNIC'},{key:'phone',label:'Phone'},
+        {key:'city',label:'City'},{key:'cls',label:'Class'},{key:'createdAt',label:'Added On'}
+      ]);
+      break;
+    }
+    case 'sb5': { // Farmer Listing
+      const demo=ALL_ROWS.map(r=>({name:r.farmer,field:r.field,area:r.area,city:r.city,cls:r.cls}));
+      const custom=getRecordData('sawie_data_farmers').map(r=>({name:r.name,field:'—',area:'—',city:r.city,cls:r.cls}));
+      showRecordsView('Farmer Listing',[...custom,...demo],[
+        {key:'name',label:'Farmer Name'},{key:'field',label:'Field'},{key:'area',label:'Area'},
+        {key:'city',label:'City'},{key:'cls',label:'Class'}
+      ]);
+      break;
+    }
+    case 'sb6': { // Sub Field Mgmt.
+      const rows=getRecordData('sawie_data_subfields');
+      showRecordsView('Sub Field Management',rows,[
+        {key:'fieldName',label:'Field Name'},{key:'farmer',label:'Farmer'},{key:'area',label:'Area (acres)'},
+        {key:'soilType',label:'Soil Type'},{key:'gpsCoords',label:'GPS'},{key:'createdAt',label:'Added On'}
+      ]);
+      break;
+    }
+    case 'sb7': { // Landmass Management
+      const totalDemo=ALL_ROWS.reduce((s,r)=>s+(parseFloat(r.area)||0),0);
+      const totalCustom=getRecordData('sawie_data_subfields').reduce((s,r)=>s+(parseFloat(r.area)||0),0);
+      const byCity={};
+      ALL_ROWS.forEach(r=>{const a=parseFloat(r.area)||0;byCity[r.city]=(byCity[r.city]||0)+a});
+      const rows=Object.keys(byCity).map(c=>({city:c,totalArea:byCity[c].toFixed(2)+' ac',fields:ALL_ROWS.filter(r=>r.city===c).length}));
+      rows.unshift({city:'ALL REGIONS',totalArea:(totalDemo+totalCustom).toFixed(2)+' ac',fields:ALL_ROWS.length+getRecordData('sawie_data_subfields').length});
+      showRecordsView('Landmass Management — Total Area by City',rows,[
+        {key:'city',label:'City'},{key:'totalArea',label:'Total Area'},{key:'fields',label:'Field Count'}
+      ]);
+      break;
+    }
+    case 'sb8': { // District Fields
+      const byCity={};
+      ALL_ROWS.forEach(r=>{byCity[r.city]=(byCity[r.city]||0)+1});
+      const rows=Object.keys(byCity).map(c=>({district:c,fieldCount:byCity[c]}));
+      showRecordsView('District Fields',rows,[{key:'district',label:'District / City'},{key:'fieldCount',label:'Field Count'}]);
+      break;
+    }
+    case 'sb9': // Inactive Farmer List
+      showRecordsView('Inactive Farmer List',[],[]);
+      showToast('No inactive farmers found — all farmers are active','info');
+      break;
+    case 'sb10': // Import Farmer
+      openImportFarmerDialog();
+      break;
+    default:
+      showToast(label+' selected','info');
+  }
+}
+function showFieldsMapFallback(rows){
+  showRecordsView('Fields Map — Field Locations',rows.map(r=>({name:r.name,location:r.notes})),[
+    {key:'name',label:'Farmer / Field'},{key:'location',label:'Details'}
+  ]);
+}
+
+// Missing NDVI — sub-fields without GPS coordinates entered
+function showMissingNDVI(){
+  const subfields=getRecordData('sawie_data_subfields');
+  const rows=subfields.filter(sf=>!sf.gpsCoords).map(sf=>({fieldName:sf.fieldName,farmer:sf.farmer,area:sf.area,soilType:sf.soilType||'—'}));
+  showRecordsView('Missing NDVI — Fields Without GPS/Imagery Data',rows,[
+    {key:'fieldName',label:'Field Name'},{key:'farmer',label:'Farmer'},{key:'area',label:'Area (acres)'},{key:'soilType',label:'Soil Type'}
+  ]);
+  if(!rows.length)showToast('All fields have NDVI/GPS data — nothing missing','success');
+}
+
+// Indices Status — quick summary of crop growth stages across saved crop records
+function showIndicesStatus(){
+  const crops=getRecordData('sawie_data_crops');
+  const rows=crops.map(c=>({cropName:c.cropName,fieldName:c.fieldName,stage:c.stage,sowingDate:c.sowingDate||'—',expectedHarvest:c.expectedHarvest||'—'}));
+  showRecordsView('Indices Status — Crop Growth Stages',rows,[
+    {key:'cropName',label:'Crop'},{key:'fieldName',label:'Field'},{key:'stage',label:'Growth Stage'},
+    {key:'sowingDate',label:'Sowing Date'},{key:'expectedHarvest',label:'Expected Harvest'}
+  ]);
+}
+
+// Sales Filter — filter table to Select Class (sales-acquired) farmers only
+function applySalesFilter(){
+  document.getElementById('dashboardView').style.display='block';
+  document.getElementById('recordsView').style.display='none';
+  document.getElementById('filterClass').value='Select Class';
+  applyFilters();
+  showToast('Sales filter applied — showing Select Class customers','success');
+}
+
+// Single Farmer View — search & inspect one farmer's full record
+function openSingleFarmerView(){
+  const farmers=getRecordData('sawie_data_farmers');
+  if(!farmers.length){
+    showToast('No farmers saved yet — add a farmer first','info');
+    return;
+  }
+  const name=prompt('Enter farmer name to view (exact match):');
+  if(!name)return;
+  const match=farmers.find(f=>f.name.toLowerCase()===name.trim().toLowerCase());
+  if(!match){
+    showToast('Farmer not found','error');
+    return;
+  }
+  const subfields=getRecordData('sawie_data_subfields').filter(sf=>sf.farmer===match.name);
+  showRecordsView(`Single Farmer View — ${match.name}`,[
+    {field:'CNIC',val:match.cnic||'—'},{field:'Phone',val:match.phone||'—'},{field:'City',val:match.city||'—'},
+    {field:'Address',val:match.address||'—'},{field:'Class',val:match.cls||'—'},
+    {field:'Sub Fields',val:subfields.length},{field:'Added On',val:match.createdAt}
+  ],[{key:'field',label:'Field'},{key:'val',label:'Value'}]);
+}
+
+// Import Farmer — CSV upload -> bulk add into farmer records
+function openImportFarmerDialog(){
+  let inp=document.getElementById('importFarmerInput');
+  if(!inp){
+    inp=document.createElement('input');
+    inp.type='file';inp.accept='.csv';inp.id='importFarmerInput';inp.style.display='none';
+    document.body.appendChild(inp);
+    inp.addEventListener('change',handleImportFarmerFile);
+  }
+  inp.value='';
+  inp.click();
+}
+function handleImportFarmerFile(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(evt){
+    const text=evt.target.result;
+    const lines=text.split(/\r?\n/).filter(l=>l.trim());
+    if(lines.length<2){showToast('CSV file has no data rows','error');return}
+    const headers=lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim().toLowerCase());
+    const data=getRecordData('sawie_data_farmers');
+    let added=0;
+    for(let i=1;i<lines.length;i++){
+      const cells=lines[i].split(',').map(c=>c.replace(/^"|"$/g,'').trim());
+      const rec={};
+      headers.forEach((h,idx)=>{
+        if(h.includes('name'))rec.name=cells[idx];
+        else if(h.includes('cnic'))rec.cnic=cells[idx];
+        else if(h.includes('phone'))rec.phone=cells[idx];
+        else if(h.includes('city'))rec.city=cells[idx];
+        else if(h.includes('address'))rec.address=cells[idx];
+        else if(h.includes('class'))rec.cls=cells[idx];
+      });
+      if(rec.name){
+        rec.id=Date.now()+i;
+        rec.createdAt=new Date().toLocaleString();
+        data.push(rec);
+        added++;
+      }
+    }
+    saveRecordData('sawie_data_farmers',data);
+    showToast(`${added} farmer(s) imported successfully`,'success');
+    refreshDashboard();
+  };
+  reader.readAsText(file);
+}
+function toggleSidebar(){
+  sidebarCollapsed=!sidebarCollapsed;
+  document.getElementById('sidebar').classList.toggle('collapsed',sidebarCollapsed);
+  document.getElementById('hdrLogo').classList.toggle('collapsed',sidebarCollapsed);
+}
+
+// ══════════════════════════════════════
+//  FILTERS
+// ══════════════════════════════════════
+function populateFilters(){
+  const farmers=[...new Set(ALL_ROWS.map(r=>r.farmer).filter(Boolean))].sort();
+  const fSel=document.getElementById('filterFarmer');
+  fSel.innerHTML='<option value="">All Farmers</option>';
+  farmers.forEach(f=>{const o=document.createElement('option');o.value=f;o.textContent=f;fSel.appendChild(o)});
+  const cities=[...new Set(ALL_ROWS.map(r=>r.city).filter(Boolean))].sort();
+  const cSel=document.getElementById('filterCity');
+  cSel.innerHTML='<option value="">All Cities</option>';
+  cities.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cSel.appendChild(o)});
+}
+function applyFilters(){
+  const farmer=document.getElementById('filterFarmer').value;
+  const crop=document.getElementById('filterCrop').value;
+  const city=document.getElementById('filterCity').value;
+  const cls=document.getElementById('filterClass').value;
+  const q=(document.getElementById('tableSearch').value||document.getElementById('globalSearch').value||'').toLowerCase();
+  filteredRows=ALL_ROWS.filter(r=>{
+    if(farmer&&r.farmer!==farmer)return false;
+    if(crop&&r.crop!==crop)return false;
+    if(city&&r.city!==city)return false;
+    if(cls&&r.cls!==cls)return false;
+    if(q&&!Object.values(r).join(' ').toLowerCase().includes(q))return false;
+    return true;
+  });
+  currentPage=1;selectedRows.clear();renderTable();
+}
+function resetFilters(){
+  ['filterFarmer','filterCrop','filterCity','filterClass','tableSearch','globalSearch'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  filteredRows=[...ALL_ROWS];currentPage=1;selectedRows.clear();renderTable();
+  showToast('Filters cleared','info');
+}
+function handleGlobalSearch(val){document.getElementById('tableSearch').value=val;applyFilters()}
+
+// ══════════════════════════════════════
+//  TABLE
+// ══════════════════════════════════════
+function renderTableHead(){
+  document.getElementById('tableHead').innerHTML=`<tr>
+    <th class="cb-col"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)"></th>
+    ${COLS.filter(c=>!hiddenCols.has(c.key)).map(c=>`
+      <th class="${sortCol===c.key?'sorted':''}" onclick="${c.sortable?`sortBy('${c.key}')`:''}" style="${c.sortable?'':'cursor:default'}">
+        <div class="th-inner">${c.label}
+          ${c.sortable?`<span class="sort-icon ${sortCol===c.key?(sortDir>0?'asc':'desc'):''}">${sortCol===c.key?(sortDir>0?'↑':'↓'):'↕'}</span>`:''}
+        </div>
+      </th>`).join('')}
+    <th>Actions</th>
+  </tr>`;
+}
+function renderTableBody(){
+  const start=(currentPage-1)*rowsPerPage,end=start+rowsPerPage;
+  const pg=filteredRows.slice(start,end);
+  const tb=document.getElementById('tableBody');
+  if(!pg.length){
+    tb.innerHTML=`<tr><td colspan="${COLS.length+2}" style="text-align:center;padding:40px;color:var(--text3)">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <svg class="icon" viewBox="0 0 24 24" style="width:32px;height:32px;opacity:.3"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+        <span style="font-weight:600">No records found</span>
+        <span style="font-size:11px">Try adjusting your filters</span>
+      </div></td></tr>`;
+    return;
+  }
+  tb.innerHTML=pg.map((r,i)=>`
+    <tr class="${selectedRows.has(r.id)?'selected':''}" style="animation-delay:${i*.02}s">
+      <td class="cb-col"><input type="checkbox" ${selectedRows.has(r.id)?'checked':''} onchange="toggleRow(${r.id},this.checked)"></td>
+      ${!hiddenCols.has('id')?`<td class="td-id">#${r.id}</td>`:''}
+      ${!hiddenCols.has('farmer')?`<td class="td-farmer">${r.farmer}</td>`:''}
+      ${!hiddenCols.has('field')?`<td>${r.field}</td>`:''}
+      ${!hiddenCols.has('area')?`<td style="color:var(--green);font-weight:600">${r.area}</td>`:''}
+      ${!hiddenCols.has('rep')?`<td style="color:var(--text3)">${r.rep||'—'}</td>`:''}
+      ${!hiddenCols.has('cls')?`<td><span class="status-badge ${r.cls==='Self Register'?'reg':'select'}">${r.cls}</span></td>`:''}
+      ${!hiddenCols.has('city')?`<td>${r.city}</td>`:''}
+      <td>
+        <div class="row-actions">
+          <button class="row-action-btn" title="View" onclick="viewTableRow(${r.id})">👁</button>
+          <button class="row-action-btn" title="Edit" onclick="editTableRow(${r.id})">✏️</button>
+          <button class="row-action-btn" title="Delete" onclick="deleteTableRow(${r.id})">🗑</button>
+        </div>
+      </td>
+    </tr>`).join('');
+  document.getElementById('rowCount').textContent=`${filteredRows.length} records`;
+}
+function renderPagination(){
+  const total=Math.ceil(filteredRows.length/rowsPerPage);
+  const s=(currentPage-1)*rowsPerPage+1,e=Math.min(currentPage*rowsPerPage,filteredRows.length);
+  let btns='';
+  for(let i=1;i<=Math.min(total,9);i++)btns+=`<button class="pg-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  if(total>9)btns+=`<span style="color:var(--text3);font-size:12px;padding:0 4px">…</span><button class="pg-btn ${currentPage===total?'active':''}" onclick="goPage(${total})">${total}</button>`;
+  document.getElementById('paginationBar').innerHTML=`
+    <span class="pg-info">Showing ${filteredRows.length?s:0}–${e} of ${filteredRows.length}</span>
+    <div class="pg-btns">
+      <button class="pg-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>
+      ${btns}
+      <button class="pg-btn" onclick="goPage(${currentPage+1})" ${currentPage>=total?'disabled':''}>›</button>
+    </div>`;
+}
+function renderTable(){
+  if(sortCol)filteredRows.sort((a,b)=>{const av=a[sortCol]||'',bv=b[sortCol]||'';return av<bv?-sortDir:av>bv?sortDir:0});
+  renderTableHead();renderTableBody();renderPagination();
+  const n=selectedRows.size;
+  document.getElementById('bulkBar').style.display=n?'block':'none';
+  document.getElementById('bulkDeleteBtn').style.display=n?'flex':'none';
+  document.getElementById('bulkCount').textContent=n;
+  const pg=filteredRows.slice((currentPage-1)*rowsPerPage,currentPage*rowsPerPage);
+  const allSel=pg.length&&pg.every(r=>selectedRows.has(r.id));
+  const cb=document.getElementById('selectAll');if(cb)cb.checked=allSel;
+}
+function sortBy(col){sortCol===col?sortDir*=-1:(sortCol=col,sortDir=1);renderTable()}
+function goPage(p){const t=Math.ceil(filteredRows.length/rowsPerPage);if(p<1||p>t)return;currentPage=p;renderTable();document.getElementById('mainContent').scrollTop=0}
+function changeRowsPerPage(v){rowsPerPage=parseInt(v);currentPage=1;renderTable()}
+function toggleRow(id,checked){checked?selectedRows.add(id):selectedRows.delete(id);renderTable()}
+function toggleSelectAll(checked){const pg=filteredRows.slice((currentPage-1)*rowsPerPage,currentPage*rowsPerPage);pg.forEach(r=>checked?selectedRows.add(r.id):selectedRows.delete(r.id));renderTable()}
+function clearSelection(){selectedRows.clear();renderTable()}
+function bulkDelete(){
+  const n=selectedRows.size;
+  if(!n)return;
+  if(!confirm(`Delete ${n} selected record(s)? This cannot be undone.`))return;
+  const subfields=getRecordData('sawie_data_subfields');
+  const updated=subfields.filter(r=>!selectedRows.has(r.id));
+  saveRecordData('sawie_data_subfields',updated);
+  showToast(`${n} record(s) deleted`,'error');
+  selectedRows.clear();
+  refreshDashboard();
+}
+
+// ══════════════════════════════════════
+//  COLUMNS
+// ══════════════════════════════════════
+function toggleColumn(key,show){show?hiddenCols.delete(key):hiddenCols.add(key);renderTable()}
+function toggleColPanel(){document.getElementById('colPanel').classList.toggle('open')}
+function toggleExportPanel(){document.getElementById('exportModPanel').classList.toggle('open')}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#colBtn')&&!e.target.closest('#colPanel'))
+    document.getElementById('colPanel').classList.remove('open');
+  if(!e.target.closest('#exportModBtn')&&!e.target.closest('#exportModPanel'))
+    document.getElementById('exportModPanel').classList.remove('open');
+});
+
+// ══════════════════════════════════════
+//  EXPORT CSV
+// ══════════════════════════════════════
+function exportCSV(){
+  const cols=COLS.filter(c=>!hiddenCols.has(c.key));
+  const hdr=cols.map(c=>c.label).join(',');
+  const rows=filteredRows.map(r=>cols.map(c=>JSON.stringify(r[c.key]||'')).join(','));
+  const blob=new Blob([hdr+'\n'+rows.join('\n')],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sawie_fields.csv';a.click();
+  showToast('CSV exported successfully','success');
+}
+
+// ══════════════════════════════════════
+//  ADD-RECORD MODAL SYSTEM (5 sub-modules)
+//  Each module = its own form + its own localStorage "Excel table"
+// ══════════════════════════════════════
+const RECORD_MODULES={
+  farmer:{
+    title:'Add New Farmer',
+    storeKey:'sawie_data_farmers',
+    csvName:'sawie_farmers.csv',
+    fields:[
+      {key:'name',label:'Farmer Name',type:'text',required:true,placeholder:'e.g. Muhammad Aslam'},
+      {key:'cnic',label:'CNIC Number',type:'text',required:true,placeholder:'xxxxx-xxxxxxx-x'},
+      {key:'phone',label:'Phone Number',type:'text',required:true,placeholder:'03xx-xxxxxxx'},
+      {key:'city',label:'City',type:'text',required:true,placeholder:'e.g. Multan'},
+      {key:'address',label:'Address',type:'textarea',required:false,placeholder:'Village / area address'},
+      {key:'cls',label:'Customer Class',type:'select',required:true,options:['Self Register','Sales Select']},
+    ]
+  },
+  subfield:{
+    title:'New Sub Field',
+    storeKey:'sawie_data_subfields',
+    csvName:'sawie_subfields.csv',
+    fields:[
+      {key:'fieldName',label:'Field Name',type:'text',required:true,placeholder:'e.g. North Block A'},
+      {key:'farmer',label:'Linked Farmer Name',type:'text',required:true,placeholder:'e.g. Muhammad Aslam'},
+      {key:'area',label:'Field Area (acres)',type:'text',required:true,placeholder:'e.g. 12.5'},
+      {key:'gpsCoords',label:'GPS Coordinates',type:'text',required:false,placeholder:'e.g. 30.1575, 71.5249'},
+      {key:'soilType',label:'Soil Type',type:'select',required:false,options:['Loamy','Sandy','Clay','Silty']},
+    ]
+  },
+  crop:{
+    title:'Add Crop Record',
+    storeKey:'sawie_data_crops',
+    csvName:'sawie_crops.csv',
+    fields:[
+      {key:'cropName',label:'Crop Name',type:'text',required:true,placeholder:'e.g. Wheat, Cotton, Sugarcane'},
+      {key:'fieldName',label:'Field Name',type:'text',required:true,placeholder:'e.g. North Block A'},
+      {key:'sowingDate',label:'Sowing Date',type:'date',required:true},
+      {key:'expectedHarvest',label:'Expected Harvest Date',type:'date',required:false},
+      {key:'stage',label:'Growth Stage',type:'select',required:true,options:['Sowing','Vegetative','Flowering','Maturity','Harvested']},
+    ]
+  },
+  rep:{
+    title:'Add Field Rep',
+    storeKey:'sawie_data_reps',
+    csvName:'sawie_reps.csv',
+    fields:[
+      {key:'repName',label:'Representative Name',type:'text',required:true,placeholder:'e.g. Bilal Ahmed'},
+      {key:'employeeId',label:'Employee ID',type:'text',required:true,placeholder:'e.g. SW-1042'},
+      {key:'region',label:'Assigned Region',type:'text',required:true,placeholder:'e.g. Multan South'},
+      {key:'phone',label:'Phone Number',type:'text',required:true,placeholder:'03xx-xxxxxxx'},
+      {key:'status',label:'Status',type:'select',required:false,options:['Active','On Leave','Inactive']},
+    ]
+  },
+  city:{
+    title:'Add City / Region',
+    storeKey:'sawie_data_cities',
+    csvName:'sawie_cities.csv',
+    fields:[
+      {key:'cityName',label:'City Name',type:'text',required:true,placeholder:'e.g. Multan'},
+      {key:'province',label:'Province',type:'text',required:true,placeholder:'e.g. Punjab'},
+      {key:'district',label:'District',type:'text',required:true,placeholder:'e.g. Multan'},
+      {key:'zoneCode',label:'Zone Code',type:'text',required:false,placeholder:'e.g. MTN-01'},
+      {key:'farmersCount',label:'Registered Farmers (approx.)',type:'text',required:false,placeholder:'e.g. 120'},
+    ]
+  },
+};
+let currentRecordModule=null;
+
+function getRecordData(storeKey){try{const s=localStorage.getItem(storeKey);return s?JSON.parse(s):[]}catch{return []}}
+function saveRecordData(storeKey,arr){try{localStorage.setItem(storeKey,JSON.stringify(arr))}catch{}}
+
+let currentEditId=null; // when set, submitRecordModal updates this record instead of creating a new one
+
+function openRecordModal(moduleKey,editRecord=null){
+  const mod=RECORD_MODULES[moduleKey];
+  if(!mod)return;
+  currentRecordModule=moduleKey;
+  currentEditId=editRecord?editRecord.id:null;
+  document.getElementById('recModalTitle').textContent=editRecord?('Edit — '+mod.title.replace('Add ','').replace('New ','')):mod.title;
+  const body=document.getElementById('recModalBody');
+  body.innerHTML=mod.fields.map(f=>{
+    const reqMark=f.required?' <span style="color:var(--red)">*</span>':'';
+    const existing=editRecord?(editRecord[f.key]||''):'';
+    let input='';
+    if(f.type==='textarea'){
+      input=`<textarea id="rf_${f.key}" placeholder="${f.placeholder||''}" style="width:100%;min-height:64px;padding:9px 11px;border:1.5px solid var(--border2);border-radius:9px;font-family:inherit;font-size:12.5px;outline:none;resize:vertical" onfocus="this.style.borderColor='var(--green3)'" onblur="this.style.borderColor='var(--border2)'">${existing}</textarea>`;
+    } else if(f.type==='select'){
+      input=`<select id="rf_${f.key}" style="width:100%;padding:9px 11px;border:1.5px solid var(--border2);border-radius:9px;font-family:inherit;font-size:12.5px;outline:none;background:#fff">
+        <option value="">Select…</option>
+        ${f.options.map(o=>`<option value="${o}" ${existing===o?'selected':''}>${o}</option>`).join('')}
+      </select>`;
+    } else {
+      input=`<input type="${f.type==='date'?'date':'text'}" id="rf_${f.key}" placeholder="${f.placeholder||''}" value="${existing}" style="width:100%;padding:9px 11px;border:1.5px solid var(--border2);border-radius:9px;font-family:inherit;font-size:12.5px;outline:none" onfocus="this.style.borderColor='var(--green3)'" onblur="this.style.borderColor='var(--border2)'">`;
+    }
+    return `<div style="margin-bottom:13px">
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px">${f.label}${reqMark}</label>
+      ${input}
+    </div>`;
+  }).join('')+`<div id="recModalErr" style="display:none;color:var(--red);font-size:11.5px;font-weight:600;margin-top:2px"></div>`;
+  document.getElementById('recModalOverlay').style.display='flex';
+}
+function closeRecordModal(){
+  document.getElementById('recModalOverlay').style.display='none';
+  currentRecordModule=null;
+  currentEditId=null;
+}
+function submitRecordModal(){
+  const mod=RECORD_MODULES[currentRecordModule];
+  if(!mod)return;
+  const errBox=document.getElementById('recModalErr');
+  const record={};
+  for(const f of mod.fields){
+    const el=document.getElementById('rf_'+f.key);
+    const val=(el.value||'').trim();
+    if(f.required&&!val){
+      errBox.textContent=`"${f.label}" is required.`;
+      errBox.style.display='block';
+      el.style.borderColor='var(--red)';
+      el.focus();
+      return;
+    }
+    record[f.key]=val;
+  }
+  const data=getRecordData(mod.storeKey);
+  if(currentEditId){
+    const idx=data.findIndex(r=>r.id===currentEditId);
+    if(idx>-1){
+      record.id=currentEditId;
+      record.createdAt=data[idx].createdAt;
+      record.updatedAt=new Date().toLocaleString();
+      data[idx]=record;
+    }
+    showToast(`${mod.title.replace('Add ','').replace('New ','')} updated successfully`,'success');
+  } else {
+    record.id=Date.now();
+    record.createdAt=new Date().toLocaleString();
+    data.push(record);
+    showToast(`${mod.title.replace('Add ','').replace('New ','')} saved successfully`,'success');
+  }
+  saveRecordData(mod.storeKey,data);
+  closeRecordModal();
+  refreshDashboard();
+}
+document.getElementById('recModalOverlay').addEventListener('click',e=>{
+  if(e.target.id==='recModalOverlay')closeRecordModal();
+});
+
+// ══════════════════════════════════════
+//  TABLE ROW ACTIONS — View / Edit / Delete (operate on the underlying sub-field record)
+// ══════════════════════════════════════
+function viewTableRow(id){
+  const subfields=getRecordData('sawie_data_subfields');
+  const sf=subfields.find(r=>r.id===id);
+  if(!sf){showToast('Record not found','error');return}
+  const farmers=getRecordData('sawie_data_farmers');
+  const fm=farmers.find(f=>f.name===sf.farmer);
+  showRecordsView(`View — ${sf.fieldName||'Field'}`,[
+    {field:'Field Name',val:sf.fieldName||'—'},
+    {field:'Farmer',val:sf.farmer||'—'},
+    {field:'Area',val:sf.area?(sf.area+' acres'):'—'},
+    {field:'Soil Type',val:sf.soilType||'—'},
+    {field:'GPS Coordinates',val:sf.gpsCoords||'—'},
+    {field:'City',val:fm?fm.city:'—'},
+    {field:'Customer Class',val:fm?fm.cls:'—'},
+    {field:'Added On',val:sf.createdAt||'—'},
+  ],[{key:'field',label:'Field'},{key:'val',label:'Value'}]);
+}
+function editTableRow(id){
+  const subfields=getRecordData('sawie_data_subfields');
+  const sf=subfields.find(r=>r.id===id);
+  if(!sf){showToast('Record not found','error');return}
+  openRecordModal('subfield',sf);
+}
+function deleteTableRow(id){
+  const subfields=getRecordData('sawie_data_subfields');
+  const sf=subfields.find(r=>r.id===id);
+  if(!sf){showToast('Record not found','error');return}
+  if(!confirm(`Delete field "${sf.fieldName}"? This cannot be undone.`))return;
+  const updated=subfields.filter(r=>r.id!==id);
+  saveRecordData('sawie_data_subfields',updated);
+  selectedRows.delete(id);
+  showToast(`Field "${sf.fieldName}" deleted`,'error');
+  refreshDashboard();
+}
+
+// ══════════════════════════════════════
+//  LIVE DASHBOARD — rebuilds table + stats from saved records
+//  (localStorage acts as our "Excel backend")
+// ══════════════════════════════════════
+function rebuildAllRows(){
+  const farmers=getRecordData('sawie_data_farmers');
+  const subfields=getRecordData('sawie_data_subfields');
+  const crops=getRecordData('sawie_data_crops');
+  // Build a lookup of crop by field name (latest wins)
+  const cropByField={};
+  crops.forEach(c=>{if(c.fieldName)cropByField[c.fieldName]=c.cropName});
+  // Sub-fields are the "field" rows for the main table; farmer name / city looked up from farmer record when possible
+  const farmerByName={};
+  farmers.forEach(f=>{farmerByName[f.name]=f});
+  const rows=subfields.map(sf=>{
+    const fm=farmerByName[sf.farmer];
+    return {
+      id:sf.id,
+      farmer:sf.farmer||'—',
+      field:sf.fieldName||'—',
+      area:sf.area?(sf.area+' ac'):'—',
+      crop:cropByField[sf.fieldName]||'',
+      rep:'',
+      cls:fm?fm.cls:'',
+      city:fm?fm.city:''
+    };
+  });
+  ALL_ROWS.length=0;
+  ALL_ROWS.push(...rows);
+}
+function refreshDashboard(){
+  rebuildAllRows();
+  filteredRows=[...ALL_ROWS];
+  currentPage=1;
+  populateFilters();
+  applyFilters();
+  renderStats();
+}
+
+// Export any module's saved records to CSV (Excel-compatible)
+function exportModuleCSV(moduleKey){
+  const mod=RECORD_MODULES[moduleKey];
+  if(!mod)return;
+  const data=getRecordData(mod.storeKey);
+  if(!data.length){showToast('No records to export yet','info');return}
+  const cols=mod.fields.map(f=>f.key).concat(['createdAt']);
+  const hdr=mod.fields.map(f=>f.label).concat(['Created At']).join(',');
+  const rows=data.map(r=>cols.map(c=>JSON.stringify(r[c]||'')).join(','));
+  const blob=new Blob([hdr+'\n'+rows.join('\n')],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=mod.csvName;a.click();
+  showToast('Excel (CSV) file exported','success');
+}
+</script>
+</body>
+</html>
